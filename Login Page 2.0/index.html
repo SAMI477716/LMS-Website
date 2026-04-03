@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- Role Selection -->
     <div class="container" id="selection">
       <h1>LMS Tracker for Peak Members</h1>
       <button class="btn student" onclick="showStudentLogin()">
@@ -19,67 +18,76 @@
       <a href="#" class="link">Privacy</a>
     </div>
 
-    <!-- Student Login -->
     <div class="container" id="studentLogin" style="display: none">
       <h1>Student Access<br /><small>Peak Members Portal</small></h1>
-      <div class="form-group">
-        <label for="studentUsername">Username or Email</label>
-        <input
-          type="text"
-          id="studentUsername"
-          placeholder="Enter your Peak Member ID or email"
-        />
-      </div>
-      <div class="form-group">
-        <label for="studentPassword">Password</label>
-        <input type="password" id="studentPassword" placeholder="********" />
-      </div>
-      <a href="#" class="link">Forgot password?</a>
-      <p class="note">Peak Members: Use your organization credentials</p>
-      <button class="btn active" onclick="login('student')">
-        Sign In to Dashboard
-      </button>
-      <a href="#" class="link">New Peak Member? Contact administrator</a>
-      <a href="#" class="link" onclick="backToSelection()"
-        >← Back to selection</a
-      >
+      
+      <form action="../includes/login_process.php" method="POST">
+        <div class="form-group">
+          <label for="studentUsername">Username or Email</label>
+          <input
+            type="text"
+            name="username"
+            id="studentUsername"
+            required
+            placeholder="Enter your Peak Member ID or email"
+          />
+        </div>
+        <div class="form-group">
+          <label for="studentPassword">Password</label>
+          <input 
+            type="password" 
+            name="password" 
+            id="studentPassword" 
+            required 
+            placeholder="********" 
+          />
+        </div>
+        <a href="#" class="link">Forgot password?</a>
+        <p class="note">Peak Members: Use your organization credentials</p>
+        
+        <button type="submit" class="btn active">
+          Sign In to Dashboard
+        </button>
+      </form>
+
+      <a href="signup.html" class="link" style="color: #007bff; font-weight: bold;">New Peak Member? Register here</a>
+      <a href="#" class="link" onclick="backToSelection()">← Back to selection</a>
     </div>
 
-    <!-- Instructor Login -->
     <div class="container" id="instructorLogin" style="display: none">
       <h1>Instructor Access<br /><small>Peak Members Portal</small></h1>
-      <div class="form-group">
-        <label for="instructorUsername">Username or Email</label>
-        <input
-          type="text"
-          id="instructorUsername"
-          placeholder="Enter your Instructor ID or email"
-        />
-      </div>
-      <div class="form-group">
-        <label for="instructorPassword">Password</label>
-        <input type="password" id="instructorPassword" placeholder="********" />
-      </div>
-      <a href="#" class="link">Forgot password?</a>
-      <p class="note">Peak Members: Use your organization credentials</p>
-      <button class="btn active" onclick="login('instructor')">
-        Sign In to Dashboard
-      </button>
-      <a href="#" class="link">New Instructor? Contact administrator</a>
-      <a href="#" class="link" onclick="backToSelection()"
-        >← Back to selection</a
-      >
-    </div>
+      
+      <form action="../includes/login_process.php" method="POST">
+        <div class="form-group">
+          <label for="instructorUsername">Username or Email</label>
+          <input
+            type="text"
+            name="username"
+            id="instructorUsername"
+            required
+            placeholder="Enter your Instructor ID or email"
+          />
+        </div>
+        <div class="form-group">
+          <label for="instructorPassword">Password</label>
+          <input 
+            type="password" 
+            name="password" 
+            id="instructorPassword" 
+            required 
+            placeholder="********" 
+          />
+        </div>
+        <a href="#" class="link">Forgot password?</a>
+        <p class="note">Peak Members: Use your organization credentials</p>
+        
+        <button type="submit" class="btn active">
+          Sign In to Dashboard
+        </button>
+      </form>
 
-    <!-- Dashboard -->
-    <div class="container" id="dashboard" style="display: none">
-      <h1>LMS Tracker Dashboard</h1>
-      <p class="dashboard">
-        Welcome to Peak Members Portal<br />
-        You have successfully logged in to the LMS Tracker Dashboard.<br />
-        This is a placeholder dashboard. Your learning management content would
-        appear here.
-      </p>
+      <a href="signup.html" class="link" style="color: #007bff; font-weight: bold;">New Instructor? Register here</a>
+      <a href="#" class="link" onclick="backToSelection()">← Back to selection</a>
     </div>
 
     <script src="script.js"></script>

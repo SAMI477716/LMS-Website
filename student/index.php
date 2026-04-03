@@ -1,3 +1,17 @@
+<?php
+session_start();
+
+// If the user is not logged in OR they are not a student, kick them back to login
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
+    header("Location: ../Login Page 2.0/index.html");
+    exit();
+}
+?>
+
+<h1>Welcome back, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h1>
+<p>You are logged in as a Peak Member Student.</p>
+<a href="../includes/logout.php">Logout</a>
+
 <!doctype html>
 <html lang="en">
   <head>
