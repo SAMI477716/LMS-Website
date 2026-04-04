@@ -8,9 +8,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
 }
 ?>
 
-<h1>Welcome back, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h1>
-<p>You are logged in as a Peak Member Student.</p>
-<a href="../includes/logout.php">Logout</a>
 
 <!doctype html>
 <html lang="en">
@@ -74,21 +71,20 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
 
             <!-- Student Profile Section (Bottom of Sidebar) -->
             <div class="student-profile-sidebar">
-              <div class="d-flex align-items-center">
-                <img
-                  src="https://via.placeholder.com/50/4e73df/ffffff?text=T"
-                  alt="Profile"
-                  class="profile-thumbnail rounded-circle me-2"
-                />
-                <div class="profile-info">
-                  <h6 class="text-white mb-0">Tsi</h6>
-                  <small class="text-secondary">tsi@lms.com</small>
-                  <p class="text-secondary small mb-0 mt-1">
-                    <i class="bi bi-mortarboard"></i> Batch 1 · Active
-                  </p>
-                </div>
-              </div>
-            </div>
+  <div class="d-flex align-items-center">
+    <img
+      src="https://via.placeholder.com/50/4e73df/ffffff?text=<?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>"
+      alt="Profile"
+      class="profile-thumbnail rounded-circle me-2"
+    />
+    <div class="profile-info">
+      <h6 class="text-white mb-0"><?php echo htmlspecialchars($_SESSION['username']); ?></h6>
+      <p class="text-secondary small mb-0 mt-1">
+        <i class="bi bi-mortarboard"></i> Student · Active
+      </p>
+    </div>
+  </div>
+</div>
           </div>
         </nav>
 
@@ -108,11 +104,11 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
 
             <!-- Welcome Banner -->
             <div class="alert alert-primary welcome-banner mb-4">
-              <h4 class="alert-heading">Welcome back, Tsi!</h4>
-              <p class="mb-0">
-                Here's what's happening with your learning progress today.
-              </p>
-            </div>
+  <h4 class="alert-heading">Welcome back, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h4>
+  <p class="mb-0">
+    Here's what's happening with your learning progress today.
+  </p>
+</div>
 
             <!-- Stats Cards -->
             <div class="row mb-4">

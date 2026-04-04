@@ -4,7 +4,7 @@
     --info-color: #36b9cc;
     --warning-color: #f6c23e;
     --danger-color: #e74a3b;
-    --sidebar-width: 280px;
+    --sidebar-width: 300px;
 }
 
 /* Base Styles */
@@ -129,7 +129,7 @@ body {
 
 .profile-info p {
     font-size: 11px;
-    white-space: nowrap;
+    white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
     margin-bottom: 0;
@@ -193,6 +193,7 @@ body {
     border: none;
     border-radius: 15px;
     padding: 25px;
+    
 }
 
 .welcome-banner .alert-heading {
