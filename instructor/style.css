@@ -1,11 +1,9 @@
-/* style.css - Replace with this complete updated version */
-
 :root {
-    --primary-color: #4e73df;
-    --success-color: #1cc88a;
-    --info-color: #36b9cc;
-    --warning-color: #f6c23e;
-    --danger-color: #e74a3b;
+    --primary-color: #94a9ea;
+    --success-color: #94f5d1;
+    --info-color: #80e4f4;
+    --warning-color: #f5d992;
+    --danger-color: #ea7c72;
     --sidebar-width: 280px;
 }
 
@@ -16,7 +14,8 @@
     box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
     height: 100%;
     overflow: hidden;
 }
@@ -47,7 +46,7 @@ body {
     width: var(--sidebar-width);
     z-index: 100;
     padding: 0;
-    background: linear-gradient(180deg, #1a1e2b 0%, #2c3e50 100%);
+    background: #131823;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -179,6 +178,7 @@ body {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -187,7 +187,7 @@ body {
 
 /* Welcome Banner */
 .welcome-banner {
-    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+    background: rgb(31, 50, 69);
     color: white;
     border: none;
     border-radius: 15px;
@@ -224,10 +224,21 @@ body {
     font-size: 24px;
 }
 
-.stat-icon.bg-primary { background: linear-gradient(135deg, var(--primary-color), #224abe) !important; }
-.stat-icon.bg-success { background: linear-gradient(135deg, var(--success-color), #17a673) !important; }
-.stat-icon.bg-warning { background: linear-gradient(135deg, var(--warning-color), #f4b619) !important; }
-.stat-icon.bg-danger { background: linear-gradient(135deg, var(--danger-color), #d52a1a) !important; }
+.stat-icon.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), #224abe) !important;
+}
+
+.stat-icon.bg-success {
+    background: linear-gradient(135deg, var(--success-color), #17a673) !important;
+}
+
+.stat-icon.bg-warning {
+    background: linear-gradient(135deg, var(--warning-color), #f4b619) !important;
+}
+
+.stat-icon.bg-danger {
+    background: linear-gradient(135deg, var(--danger-color), #d52a1a) !important;
+}
 
 /* Course Progress */
 .course-item {
@@ -272,7 +283,7 @@ body {
 
 .student-item:hover {
     background: #f8f9fc;
-    border-left-color: var(--primary-color);
+    border-left-color: black;
     transform: translateX(5px);
 }
 
@@ -300,13 +311,21 @@ body {
     justify-content: center;
 }
 
-.activity-icon.bg-primary { background: linear-gradient(135deg, var(--primary-color), #224abe) !important; }
-.activity-icon.bg-success { background: linear-gradient(135deg, var(--success-color), #17a673) !important; }
-.activity-icon.bg-warning { background: linear-gradient(135deg, var(--warning-color), #f4b619) !important; }
+.activity-icon.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), #4b78ff) !important;
+}
+
+.activity-icon.bg-success {
+    background: linear-gradient(135deg, var(--success-color), #4affc0) !important;
+}
+
+.activity-icon.bg-warning {
+    background: linear-gradient(135deg, var(--warning-color), #fbc337) !important;
+}
 
 /* Student Details Page */
 .student-profile-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: rgb(10, 38, 60);
     color: white;
     padding: 40px;
     border-radius: 15px;
@@ -324,7 +343,7 @@ body {
     justify-content: center;
     font-size: 48px;
     font-weight: bold;
-    color: var(--primary-color);
+    color: rgb(10, 38, 60);
     border: 5px solid rgba(255, 255, 255, 0.3);
     margin-bottom: 20px;
 }
@@ -344,7 +363,7 @@ body {
 }
 
 .batch-header {
-    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+    background: rgb(10, 38, 60);
     color: white;
     padding: 20px;
     border-bottom: none;
@@ -392,7 +411,7 @@ body {
 .student-avatar-small {
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, #f6c23e, #f4b619);
+    background: rgb(31, 50, 69);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -427,7 +446,7 @@ body {
 }
 
 .course-header {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: rgb(31, 50, 69);
     color: white;
     padding: 20px;
     border-radius: 15px 15px 0 0;
@@ -458,7 +477,7 @@ body {
 }
 
 .enrolled-students-list::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
+    background: rgb(31, 50, 69);
     border-radius: 10px;
 }
 
@@ -483,7 +502,7 @@ body {
 }
 
 .student-indicator.online {
-    background: #1cc88a;
+    background: #1acd8c;
     box-shadow: 0 0 0 2px rgba(28, 200, 138, 0.2);
 }
 
@@ -493,7 +512,7 @@ body {
 
 .enrollment-badge {
     background: #e3e6f0;
-    color: #4e73df;
+    color: #020306;
     font-size: 12px;
     font-weight: 600;
     padding: 5px 10px;
@@ -509,7 +528,7 @@ body {
 }
 
 .rankings-table thead th {
-    background: linear-gradient(135deg, var(--primary-color), #224abe);
+    background: rgb(31, 50, 69);
     color: white;
     font-weight: 600;
     border: none;
@@ -595,13 +614,13 @@ body {
 }
 
 .settings-tabs .nav-link:hover {
-    border-color: var(--primary-color);
+    border-color: rgb(31, 50, 69);
     color: var(--primary-color);
 }
 
 .settings-tabs .nav-link.active {
-    color: var(--primary-color);
-    border-bottom: 2px solid var(--primary-color);
+    color: rgb(31, 50, 69);
+    border-bottom: 2px solid rgb(31, 50, 69);
     background: transparent;
 }
 
@@ -622,18 +641,21 @@ body {
     transition: width 0.3s;
 }
 
-.layout-option, .theme-option {
+.layout-option,
+.theme-option {
     cursor: pointer;
     transition: all 0.3s;
     border: 2px solid transparent;
 }
 
-.layout-option:hover, .theme-option:hover {
+.layout-option:hover,
+.theme-option:hover {
     transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-.layout-option.selected, .theme-option.selected {
+.layout-option.selected,
+.theme-option.selected {
     border-color: var(--primary-color);
     background: rgba(78, 115, 223, 0.05);
 }
@@ -647,7 +669,7 @@ body {
     color: #333;
     padding: 12px 24px;
     border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     z-index: 9999;
     transform: translateX(400px);
     transition: transform 0.3s;
@@ -690,37 +712,388 @@ body {
 
 /* Dark Mode Styles */
 body.dark-mode {
-    background-color: #1a1e2b;
-    color: #e0e0e0;
+    background-color: #0a0e17;
+    color: #e9ecef;
 }
 
+/* Main background and content area */
+body.dark-mode .main-content {
+    background-color: #0a0e17;
+}
+
+/* Cards - Clean dark surface */
 body.dark-mode .card {
-    background-color: #2c3e50;
-    border-color: #3a4a5a;
+    background-color: #131823;
+    border-color: #2a313c;
+    box-shadow: 0 0.15rem 1rem 0 rgba(0, 0, 0, 0.3);
 }
 
 body.dark-mode .card-header {
-    background-color: #34495e !important;
-    border-bottom-color: #3a4a5a;
+    background-color: #0f1419 !important;
+    border-bottom-color: #2a313c;
+    color: #e9ecef;
 }
 
+body.dark-mode .card-body {
+    background-color: #131823;
+}
+
+/* Text colors */
 body.dark-mode .text-muted {
-    color: #a0a0a0 !important;
+    color: #fcfcfc !important;
 }
 
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6 {
+    color: #f1f3f5;
+}
+
+body.dark-mode .text-dark {
+    color: #e9ecef !important;
+}
+
+/* Background utilities override */
 body.dark-mode .bg-white {
-    background-color: #2c3e50 !important;
+    background-color: #131823 !important;
 }
 
-body.dark-mode .student-item,
+body.dark-mode .bg-light {
+    background-color: #0f1419 !important;
+}
+
+/* Student and course items */
+body.dark-mode .student-item {
+    background: #131823;
+    border-bottom: 1px solid #2a313c;
+}
+
+body.dark-mode .student-item:hover {
+    background: #1a222d;
+    border-left-color: #ffffff;
+}
+
 body.dark-mode .course-item {
-    background: #2c3e50;
-    color: #e0e0e0;
+    background: #2e3543;
 }
 
-body.dark-mode .student-item:hover,
 body.dark-mode .course-item:hover {
-    background: #34495e;
+    background: #1a222d;
+    box-shadow: 0 0.15rem 1rem 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Table styles */
+body.dark-mode .table {
+    color: #414244;
+}
+
+body.dark-mode .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+body.dark-mode .table-hover tbody tr:hover {
+    background-color: rgba(77, 124, 255, 0.08);
+    color: #e9ecef;
+}
+
+body.dark-mode .table-bordered {
+    border-color: #2a313c;
+}
+
+body.dark-mode .table-bordered th,
+body.dark-mode .table-bordered td {
+    border-color: #2a313c;
+}
+
+/* Grading badges - adjusted for dark mode */
+body.dark-mode .grade-a {
+    background: #0d3b1f;
+    color: #7df9a2;
+}
+
+body.dark-mode .grade-b {
+    background: #0a3a44;
+    color: #7de6f9;
+}
+
+body.dark-mode .grade-c {
+    background: #4a3a0a;
+    color: #f9e67d;
+}
+
+body.dark-mode .grade-d {
+    background: #4a1a1a;
+    color: #f9a27d;
+}
+
+/* Batch cards */
+body.dark-mode .batch-card {
+    background-color: #131823;
+    border-color: #2a313c;
+}
+
+body.dark-mode .batch-header {
+    background: #0f1419 !important;
+    border-bottom: 1px solid #2a313c;
+}
+
+body.dark-mode .student-list-item {
+    border-bottom-color: #2a313c;
+}
+
+body.dark-mode .student-list-item:hover {
+    background: #1a222d;
+}
+
+/* Stats cards */
+body.dark-mode .stat-card {
+    background-color: #131823;
+}
+
+/* Settings page styles */
+body.dark-mode .settings-tabs {
+    border-bottom-color: #22272f;
+}
+
+body.dark-mode .settings-tabs .nav-link {
+    color: #8c99a6;
+}
+
+body.dark-mode .settings-tabs .nav-link.active {
+    color: #7ba0ff;
+    border-bottom-color: #7ba0ff;
+}
+
+body.dark-mode .settings-tabs .nav-link:hover {
+    color: #7ba0ff;
+}
+
+/* Forms and inputs */
+body.dark-mode .form-control {
+    background-color: #0f1419;
+    border-color: #2a313c;
+    color: #e9ecef;
+}
+
+body.dark-mode .form-control:focus {
+    background-color: #0f1419;
+    border-color: #4d7cff;
+    color: #e9ecef;
+}
+
+body.dark-mode .form-control::placeholder {
+    color: #6c7a8a;
+}
+
+body.dark-mode .input-group-text {
+    background-color: #1a222d;
+    border-color: #2a313c;
+    color: #e9ecef;
+}
+
+/* Dropdown menus */
+body.dark-mode .dropdown-menu {
+    background-color: #131823;
+    border-color: #2a313c;
+}
+
+body.dark-mode .dropdown-item {
+    color: #e9ecef;
+}
+
+body.dark-mode .dropdown-item:hover {
+    background-color: #1a222d;
+    color: #fff;
+}
+
+/* Modals */
+body.dark-mode .modal-content {
+    background-color: #131823;
+    border-color: #2a313c;
+}
+
+body.dark-mode .modal-header {
+    border-bottom-color: #2a313c;
+}
+
+body.dark-mode .modal-footer {
+    border-top-color: #2a313c;
+}
+
+/* Progress bars */
+body.dark-mode .progress {
+    background-color: #2a313c;
+}
+
+/* Activity items */
+body.dark-mode .activity-item {
+    background: #131823;
+}
+
+body.dark-mode .activity-item:hover {
+    background: #1a222d;
+}
+
+/* Toast notifications in dark mode */
+body.dark-mode .toast-notification {
+    background: #131823;
+    color: #e9ecef;
+    border-left-color: #4d7cff;
+}
+
+/* Border utilities */
+body.dark-mode .border {
+    border-color: #2a313c !important;
+}
+
+body.dark-mode .border-bottom {
+    border-bottom-color: #2a313c !important;
+}
+
+body.dark-mode .border-top {
+    border-top-color: #2a313c !important;
+}
+
+/* Student profile header - adjusted for dark mode */
+body.dark-mode .student-profile-header {
+    background: #0f1419;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .student-avatar-large {
+    background: #1a222d;
+    color: #7ba0ff;
+    border-color: #2a313c;
+}
+
+/* Rankings table */
+body.dark-mode .rankings-table thead th {
+    background: #0f1419;
+    color: #e9ecef;
+}
+
+body.dark-mode .rankings-table tbody tr:hover {
+    background: #1a222d;
+}
+
+/* Badge adjustments */
+body.dark-mode .badge.bg-secondary {
+    background-color: #2a313c !important;
+}
+
+/* Enrollment badge */
+body.dark-mode .enrollment-badge {
+    background: #1a222d;
+    color: #e9ecef;
+}
+
+/* Calendar input */
+body.dark-mode #calendar {
+    background-color: #0f1419;
+    border-color: #2a313c;
+    color: #e9ecef;
+}
+
+body.dark-mode #calendar:focus {
+    border-color: #4d7cff;
+    outline: none;
+}
+
+/* Layout options hover in dark mode */
+body.dark-mode .layout-option:hover,
+body.dark-mode .theme-option:hover {
+    background: #1a222d;
+}
+
+body.dark-mode .layout-option.selected,
+body.dark-mode .theme-option.selected {
+    border-color: #4d7cff;
+    background: rgba(77, 124, 255, 0.1);
+}
+
+/* Scrollbar for dark mode */
+body.dark-mode .main-content::-webkit-scrollbar-track {
+    background: #0f1419;
+}
+
+body.dark-mode .main-content::-webkit-scrollbar-thumb {
+    background: #2a313c;
+}
+
+body.dark-mode .main-content::-webkit-scrollbar-thumb:hover {
+    background: #4d7cff;
+}
+
+/* List groups */
+body.dark-mode .list-group-item {
+    background-color: #131823;
+    border-color: #2a313c;
+    color: #e9ecef;
+}
+
+/* Ensure sidebar stays dark but distinct */
+body.dark-mode .sidebar {
+    background: linear-gradient(180deg, #0a0e17 0%, #0f1419 100%);
+}
+
+/* Fix any remaining white backgrounds */
+body.dark-mode [class*="bg-"]:not(.bg-primary):not(.bg-success):not(.bg-warning):not(.bg-danger):not(.bg-info):not(.bg-transparent) {
+    background-color: initial;
+}
+
+/* Keep primary colored backgrounds intact but adjust text */
+body.dark-mode .bg-primary,
+body.dark-mode .bg-success,
+body.dark-mode .bg-warning,
+body.dark-mode .bg-danger,
+body.dark-mode .bg-info {
+    color: #fff;
+}
+
+/* Force fix for white backgrounds - Add this to the end of your dark mode section */
+body.dark-mode .table,
+body.dark-mode .card,
+body.dark-mode .bg-white {
+    background-color: #131823 !important;
+    color: #e9ecef !important;
+}
+
+body.dark-mode .table td,
+body.dark-mode .table th {
+    background-color: #131823 !important;
+    color: #e9ecef !important;
+    border-color: #2a313c !important;
+}
+
+body.dark-mode .table thead th {
+    background-color: #0f1419 !important;
+}
+
+/* Fix hover text visibility on dark mode */
+body.dark-mode .student-list-item:hover,
+body.dark-mode .enrolled-student-item:hover,
+body.dark-mode .student-item:hover {
+    color: #000000 !important;
+}
+
+body.dark-mode .student-list-item:hover h6,
+body.dark-mode .student-list-item:hover small,
+body.dark-mode .enrolled-student-item:hover span,
+body.dark-mode .enrolled-student-item:hover small,
+body.dark-mode .student-item:hover h6,
+body.dark-mode .student-item:hover small {
+    color: #000000 !important;
+}
+
+/* Fix hover visibility for student progress items only */
+body.dark-mode .student-item:hover h6,
+body.dark-mode .student-item:hover small,
+body.dark-mode .student-item:hover .text-muted,
+body.dark-mode .student-item:hover .badge {
+    color: #969191 !important;
 }
 
 /* Responsive Adjustments */
@@ -730,25 +1103,25 @@ body.dark-mode .course-item:hover {
         width: 100%;
         height: auto;
     }
-    
+
     .main-content {
         margin-left: 0;
         width: 100%;
         padding: 15px !important;
     }
-    
+
     .instructor-profile-sidebar {
         margin-top: 20px;
     }
-    
+
     .batch-header {
         padding: 15px;
     }
-    
+
     .student-list-item {
         padding: 10px 15px;
     }
-    
+
     .settings-tabs .nav-link {
         padding: 8px 12px;
         font-size: 14px;
@@ -775,16 +1148,15 @@ body.dark-mode .course-item:hover {
 }
 
 
-.calendar-box{
-margin-top:10px;
+.calendar-box {
+    margin-top: 10px;
 }
 
-#calendar{
-padding:8px 12px;
-border-radius:6px;
-border:1px solid #ccc;
-font-size:14px;
-cursor:pointer;
+#calendar {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    cursor: pointer;
 
 }
-
