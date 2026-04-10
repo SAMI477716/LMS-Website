@@ -8,19 +8,19 @@ let currentTheme = 'light';
 let currentLayout = 'comfortable';
 
 // Initialize the application
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Initialize sample data
     initializeSampleData();
-    
+
     // Initialize Bootstrap tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function(tooltipTriggerEl) {
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
-    
+
     // Add click handlers to nav links
     document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function (e) {
             e.preventDefault();
             const page = this.dataset.page;
             if (page) {
@@ -28,13 +28,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
     // Show dashboard by default
     showPage('dashboard');
-    
+
     // Add interactive features
     addInteractiveFeatures();
-    
+
     // Load saved settings
     loadSavedSettings();
 });
@@ -43,45 +43,45 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeSampleData() {
     // Students data
     studentsData = [
-        { id: 'ST001', name: 'Sami', batch: 'Batch 1', email: 'sami@email.com', enrollmentDate: '2025-09-01' },
-        { id: 'ST002', name: 'Tsi', batch: 'Batch 1', email: 'tsi@email.com', enrollmentDate: '2025-08-15' },
-        { id: 'ST003', name: 'Miky', batch: 'Batch 2', email: 'miky@email.com', enrollmentDate: '2024-01-10' },
-        { id: 'ST004', name: 'Emma', batch: 'Batch 2', email: 'emma@email.com', enrollmentDate: '2024-01-15' },
-        { id: 'ST005', name: 'John', batch: 'Batch 1', email: 'john@email.com', enrollmentDate: '2025-08-20' },
-        { id: 'ST006', name: 'Bety', batch: 'Batch 2', email: 'bety@email.com', enrollmentDate: '2024-02-01' },
+        { id: 'ST001', name: 'Samuel', batch: 'Batch 1', email: 'samiuel@email.com', enrollmentDate: '2025-09-01' },
+        { id: 'ST002', name: 'Tsion', batch: 'Batch 1', email: 'tsion@email.com', enrollmentDate: '2025-08-15' },
+        { id: 'ST003', name: 'Mikyas', batch: 'Batch 2', email: 'mikyas@email.com', enrollmentDate: '2024-01-10' },
+        { id: 'ST004', name: 'Eldana', batch: 'Batch 2', email: 'eldana@email.com', enrollmentDate: '2024-01-15' },
+        { id: 'ST005', name: 'Yohannes', batch: 'Batch 1', email: 'yohannes@email.com', enrollmentDate: '2025-08-20' },
+        { id: 'ST006', name: 'Biruk', batch: 'Batch 2', email: 'biruk@email.com', enrollmentDate: '2024-02-01' },
         { id: 'ST007', name: 'Lidiya', batch: 'Batch 2', email: 'lidiya@email.com', enrollmentDate: '2024-01-20' },
         { id: 'ST008', name: 'Abel', batch: 'Batch 1', email: 'abel@email.com', enrollmentDate: '2025-09-05' }
     ];
-    
+
     // Courses data
     coursesData = [
-        { 
-            id: 'CS101', 
-            name: 'GitHub Basics for Beginners', 
+        {
+            id: 'CS101',
+            name: 'GitHub Basics for Beginners',
             code: 'GH101',
             students: ['ST001', 'ST002', 'ST005', 'ST008'],
             visibility: 'public',
             enrollment: 'open'
         },
-        { 
-            id: 'CS102', 
-            name: 'LinkedIn Essentials for Beginners', 
+        {
+            id: 'CS102',
+            name: 'LinkedIn Essentials for Beginners',
             code: 'LI101',
             students: ['ST001', 'ST002', 'ST003', 'ST004'],
             visibility: 'public',
             enrollment: 'open'
         },
-        { 
-            id: 'CS103', 
-            name: 'Canva Design Basics for Beginners', 
+        {
+            id: 'CS103',
+            name: 'Canva Design Basics for Beginners',
             code: 'CD101',
             students: ['ST003', 'ST004', 'ST006', 'ST007'],
             visibility: 'private',
             enrollment: 'invite'
         },
-        { 
-            id: 'CS104', 
-            name: 'Getting Started with Google Docs', 
+        {
+            id: 'CS104',
+            name: 'Getting Started with Google Docs',
             code: 'GD101',
             students: ['ST001', 'ST005', 'ST006', 'ST008'],
             visibility: 'public',
@@ -89,19 +89,17 @@ function initializeSampleData() {
         },
 
     ];
-    
+
     // Grades data
     gradesData = [
-        { studentId: 'ST001', studentName: 'Sami', course: 'Getting Started with Google Docs', grade: 95, courseId: 'CS105' },
-        { studentId: 'ST003', studentName: 'Miky', course: 'Getting Started with Google Docs', grade: 90, courseId: 'CS105' },
-        { studentId: 'ST005', studentName: 'John', course: 'Getting Started with Google Docs', grade: 85, courseId: 'CS105' },
-        { studentId: 'ST008', studentName: 'Abel', course: 'Getting Started with Google Docs', grade: 82, courseId: 'CS105' },
-        { studentId: 'ST001', studentName: 'Sami', course: 'GitHub Basics for Beginners', grade: 92, courseId: 'CS101' },
-        { studentId: 'ST002', studentName: 'Tsi', course: 'GitHub Basics for Beginners', grade: 88, courseId: 'CS101' },
-        { studentId: 'ST005', studentName: 'John', course: 'GitHub Basics for Beginners', grade: 67, courseId: 'CS101' },
-        { studentId: 'ST008', studentName: 'Abel', course: 'GitHub Basics for Beginners', grade: 78, courseId: 'CS101' },
-        { studentId: 'ST003', studentName: 'Miky', course: 'Canva Design Basics for Beginners', grade: 78, courseId: 'CS103' },
-        { studentId: 'ST006', studentName: 'Bety', course: 'Canva Design Basics for Beginners', grade: 95, courseId: 'CS103' }
+        { studentId: 'ST001', studentName: 'Samuel', course: 'Getting Started with Google Docs', grade: 95, courseId: 'CS105' },
+        { studentId: 'ST003', studentName: 'Mikyas', course: 'LinkedIn Essentials for Beginners', grade: 90, courseId: 'CS105' },
+        { studentId: 'ST005', studentName: 'Yohannes', course: 'Getting Started with Google Docs', grade: 85, courseId: 'CS105' },
+        { studentId: 'ST002', studentName: 'Tsion', course: 'GitHub Basics for Beginners', grade: 88, courseId: 'CS101' },
+        { studentId: 'ST005', studentName: 'Yohannes', course: 'GitHub Basics for Beginners', grade: 67, courseId: 'CS101' },
+        { studentId: 'ST008', studentName: 'Abel', course: 'LinkedIn Essentials for Beginners', grade: 78, courseId: 'CS101' },
+        { studentId: 'ST003', studentName: 'Mikyas', course: 'Canva Design Basics for Beginners', grade: 78, courseId: 'CS103' },
+        { studentId: 'ST006', studentName: 'Biruk', course: 'Canva Design Basics for Beginners', grade: 95, courseId: 'CS103' }
     ];
 }
 
@@ -111,14 +109,14 @@ function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
     });
-    
+
     // Show selected page
     const pageElement = document.getElementById(pageId + '-page');
     if (pageElement) {
         pageElement.classList.add('active');
-        
+
         // Load page-specific data
-        switch(pageId) {
+        switch (pageId) {
             case 'students':
                 displayStudentsByBatch();
                 break;
@@ -130,7 +128,7 @@ function showPage(pageId) {
                 break;
         }
     }
-    
+
     // Update active nav link
     document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('active');
@@ -144,7 +142,7 @@ function showPage(pageId) {
 function displayStudentsByBatch() {
     const container = document.getElementById('students-by-batch');
     if (!container) return;
-    
+
     // Group students by batch
     const batches = {};
     studentsData.forEach(student => {
@@ -153,13 +151,13 @@ function displayStudentsByBatch() {
         }
         batches[student.batch].push(student);
     });
-    
+
     let html = '';
-    
+
     // Sort batches by year (descending)
     Object.keys(batches).sort().reverse().forEach(batch => {
         const students = batches[batch];
-        
+
         html += `
             <div class="col-12 mb-4">
                 <div class="batch-card">
@@ -173,7 +171,7 @@ function displayStudentsByBatch() {
                     <div class="card-body p-0">
                         <ul class="student-list">
         `;
-        
+
         students.sort((a, b) => a.name.localeCompare(b.name)).forEach(student => {
             html += `
                 <li class="student-list-item" onclick="viewStudentDetails('${student.id}')">
@@ -192,7 +190,7 @@ function displayStudentsByBatch() {
                 </li>
             `;
         });
-        
+
         html += `
                         </ul>
                     </div>
@@ -200,7 +198,7 @@ function displayStudentsByBatch() {
             </div>
         `;
     });
-    
+
     container.innerHTML = html;
 }
 
@@ -208,15 +206,15 @@ function displayStudentsByBatch() {
 function displayCoursesWithStudents() {
     const container = document.getElementById('courses-with-students');
     if (!container) return;
-    
+
     let html = '';
-    
+
     coursesData.forEach(course => {
         // Get enrolled students for this course
-        const enrolledStudents = studentsData.filter(student => 
+        const enrolledStudents = studentsData.filter(student =>
             course.students.includes(student.id)
         );
-        
+
         html += `
             <div class="col-md-6 col-lg-4 mb-4">
                 <div class="course-enrollment-card">
@@ -235,7 +233,7 @@ function displayCoursesWithStudents() {
                         </h6>
                         <div class="enrolled-students-list">
         `;
-        
+
         enrolledStudents.sort((a, b) => a.name.localeCompare(b.name)).forEach(student => {
             const isOnline = Math.random() > 0.5; // Simulated online status
             html += `
@@ -250,7 +248,7 @@ function displayCoursesWithStudents() {
                 </div>
             `;
         });
-        
+
         html += `
                         </div>
                     </div>
@@ -258,7 +256,7 @@ function displayCoursesWithStudents() {
             </div>
         `;
     });
-    
+
     container.innerHTML = html;
 }
 
@@ -266,9 +264,9 @@ function displayCoursesWithStudents() {
 function displayGradesRanking(filterCourse = 'all') {
     const tableBody = document.getElementById('grades-table-body');
     if (!tableBody) return;
-    
+
     let filteredGrades = [...gradesData];
-    
+
     if (filterCourse !== 'all') {
         const courseMap = {
             'github': 'CS101',
@@ -282,10 +280,10 @@ function displayGradesRanking(filterCourse = 'all') {
             filteredGrades = filteredGrades.filter(g => g.courseId === courseId);
         }
     }
-    
+
     // Sort by grade descending
     filteredGrades.sort((a, b) => b.grade - a.grade);
-    
+
     let html = '';
     filteredGrades.forEach((grade, index) => {
         const rank = index + 1;
@@ -293,13 +291,13 @@ function displayGradesRanking(filterCourse = 'all') {
         if (rank === 1) rankClass = 'rank-1';
         else if (rank === 2) rankClass = 'rank-2';
         else if (rank === 3) rankClass = 'rank-3';
-        
+
         let gradeClass = '';
         if (grade.grade >= 90) gradeClass = 'grade-a';
         else if (grade.grade >= 80) gradeClass = 'grade-b';
         else if (grade.grade >= 70) gradeClass = 'grade-c';
         else gradeClass = 'grade-d';
-        
+
         html += `
             <tr onclick="viewStudentDetails('${grade.studentId}')" style="cursor: pointer;">
                 <td>
@@ -316,7 +314,7 @@ function displayGradesRanking(filterCourse = 'all') {
             </tr>
         `;
     });
-    
+
     tableBody.innerHTML = html;
 }
 
@@ -329,9 +327,9 @@ function filterGradesByCourse(course) {
 function previewProfilePicture(input) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             document.getElementById('profilePreview').src = e.target.result;
-            
+
             // Also update sidebar profile image
             const sidebarProfile = document.querySelector('.profile-thumbnail');
             if (sidebarProfile) {
@@ -346,20 +344,20 @@ function saveProfileSettings() {
     const name = document.getElementById('profileName').value;
     const email = document.getElementById('profileEmail').value;
     const bio = document.getElementById('profileBio').value;
-    
+
     // Update sidebar
     const sidebarName = document.querySelector('.profile-info h6');
     const sidebarEmail = document.querySelector('.profile-info small');
     const sidebarBio = document.querySelector('.profile-info p');
-    
+
     if (sidebarName) sidebarName.textContent = name;
     if (sidebarEmail) sidebarEmail.textContent = email;
     if (sidebarBio) sidebarBio.innerHTML = `<i class="bi bi-chat-quote"></i> ${bio}`;
-    
+
     // Update main header
     const instructorName = document.querySelector('.instructor-avatar + h6');
     if (instructorName) instructorName.textContent = name;
-    
+
     showNotification('Profile updated successfully!', 'success');
 }
 
@@ -367,30 +365,30 @@ function changePassword() {
     const current = document.getElementById('currentPassword').value;
     const newPass = document.getElementById('newPassword').value;
     const confirm = document.getElementById('confirmPassword').value;
-    
+
     // Simple validation
     if (!current || !newPass || !confirm) {
         showNotification('Please fill in all fields', 'error');
         return;
     }
-    
+
     if (newPass !== confirm) {
         document.getElementById('confirmPassword').classList.add('is-invalid');
         return;
     }
-    
+
     if (newPass.length < 8) {
         showNotification('Password must be at least 8 characters long', 'error');
         return;
     }
-    
+
     // Check password strength
     const strength = checkPasswordStrength(newPass);
     if (strength < 60) {
         showNotification('Please choose a stronger password', 'warning');
         return;
     }
-    
+
     // Simulate password change
     showNotification('Password changed successfully!', 'success');
     document.getElementById('passwordSettingsForm').reset();
@@ -403,19 +401,19 @@ function checkPasswordStrength(password) {
     if (password.match(/[A-Z]+/)) strength += 25;
     if (password.match(/[0-9]+/)) strength += 25;
     if (password.match(/[$@#&!]+/)) strength += 25;
-    
+
     return Math.min(strength, 100);
 }
 
 // Update password strength indicator
-document.getElementById('newPassword')?.addEventListener('input', function(e) {
+document.getElementById('newPassword')?.addEventListener('input', function (e) {
     const strength = checkPasswordStrength(e.target.value);
     const progressBar = document.getElementById('passwordStrength');
     const strengthText = document.getElementById('passwordStrengthText');
-    
+
     if (progressBar) {
         progressBar.style.width = strength + '%';
-        
+
         if (strength < 40) {
             progressBar.className = 'progress-bar bg-danger';
             strengthText.textContent = 'Weak password';
@@ -430,7 +428,7 @@ document.getElementById('newPassword')?.addEventListener('input', function(e) {
 });
 
 // Password match validation
-document.getElementById('confirmPassword')?.addEventListener('input', function(e) {
+document.getElementById('confirmPassword')?.addEventListener('input', function (e) {
     const newPass = document.getElementById('newPassword').value;
     if (e.target.value !== newPass) {
         e.target.classList.add('is-invalid');
@@ -442,13 +440,13 @@ document.getElementById('confirmPassword')?.addEventListener('input', function(e
 function saveCourseSettings() {
     const visibility = document.querySelector('input[name="courseVisibility"]:checked').id;
     const enrollment = document.querySelector('input[name="enrollmentOption"]:checked').id;
-    
+
     // Update all courses with default settings
     coursesData.forEach(course => {
         course.visibility = visibility === 'visibilityPublic' ? 'public' : 'private';
         course.enrollment = enrollment === 'enrollmentOpen' ? 'open' : 'invite';
     });
-    
+
     showNotification('Course settings saved!', 'success');
 }
 
@@ -457,7 +455,7 @@ function saveNotificationSettings() {
     const emailMessages = document.getElementById('emailMessages').checked;
     const emailGrades = document.getElementById('emailGrades').checked;
     const emailAnnouncements = document.getElementById('emailAnnouncements').checked;
-    
+
     // Save to localStorage
     const settings = {
         emailSubmissions,
@@ -466,19 +464,19 @@ function saveNotificationSettings() {
         emailAnnouncements
     };
     localStorage.setItem('notificationSettings', JSON.stringify(settings));
-    
+
     showNotification('Notification preferences saved!', 'success');
 }
 
 function selectLayout(layout) {
     currentLayout = layout;
-    
+
     // Update UI
     document.querySelectorAll('.layout-option').forEach(opt => {
         opt.classList.remove('selected');
     });
     event.currentTarget.classList.add('selected');
-    
+
     // Apply layout changes
     document.body.classList.remove('layout-compact', 'layout-spacious');
     if (layout !== 'comfortable') {
@@ -488,20 +486,20 @@ function selectLayout(layout) {
 
 function selectTheme(theme) {
     currentTheme = theme;
-    
+
     // Update UI
     document.querySelectorAll('.theme-option').forEach(opt => {
         opt.classList.remove('selected');
     });
     event.currentTarget.classList.add('selected');
-    
+
     // Apply theme
     if (theme === 'dark') {
         document.body.classList.add('dark-mode');
     } else {
         document.body.classList.remove('dark-mode');
     }
-    
+
     // Save preference
     localStorage.setItem('theme', theme);
 }
@@ -532,13 +530,13 @@ function loadSavedSettings() {
             }
         });
     }
-    
+
     // Load accent color
     const savedColor = localStorage.getItem('accentColor');
     if (savedColor) {
         setAccentColor(savedColor);
     }
-    
+
     // Load notification settings
     const savedNotifications = localStorage.getItem('notificationSettings');
     if (savedNotifications) {
@@ -564,12 +562,12 @@ function showNotification(message, type = 'info') {
         <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
         ${message}
     `;
-    
+
     document.body.appendChild(toast);
-    
+
     // Show toast
     setTimeout(() => toast.classList.add('show'), 100);
-    
+
     // Remove after 3 seconds
     setTimeout(() => {
         toast.classList.remove('show');
@@ -583,7 +581,7 @@ function exportStudentList() {
     studentsData.forEach(student => {
         csv += `${student.id},${student.name},${student.batch},${student.email},${student.enrollmentDate}\n`;
     });
-    
+
     // Download CSV
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -591,7 +589,7 @@ function exportStudentList() {
     a.href = url;
     a.download = 'student_list.csv';
     a.click();
-    
+
     showNotification('Student list exported!', 'success');
 }
 
@@ -605,12 +603,12 @@ function addNewCourse() {
     const code = document.getElementById('courseCode').value;
     const description = document.getElementById('courseDescription').value;
     const visibility = document.getElementById('courseVisibility').value;
-    
+
     if (!name || !code) {
         showNotification('Please fill in required fields', 'error');
         return;
     }
-    
+
     // Create new course
     const newCourse = {
         id: 'CS' + (coursesData.length + 100),
@@ -621,14 +619,14 @@ function addNewCourse() {
         enrollment: 'open',
         students: []
     };
-    
+
     coursesData.push(newCourse);
-    
+
     // Close modal and refresh display
     const modal = bootstrap.Modal.getInstance(document.getElementById('addCourseModal'));
     modal.hide();
     document.getElementById('addCourseForm').reset();
-    
+
     displayCoursesWithStudents();
     showNotification('Course added successfully!', 'success');
 }
@@ -636,27 +634,27 @@ function addNewCourse() {
 // View student details (existing function with enhancements)
 function viewStudentDetails(studentId) {
     showPage('student');
-    
+
     // Enhanced student data lookup
     const student = studentsData.find(s => s.id === studentId);
     if (!student) return;
-    
+
     // Get student's courses and grades
-    const studentCourses = coursesData.filter(course => 
+    const studentCourses = coursesData.filter(course =>
         course.students.includes(studentId)
     );
-    
-    const studentGrades = gradesData.filter(grade => 
+
+    const studentGrades = gradesData.filter(grade =>
         grade.studentId === studentId
     );
-    
+
     displayStudentDetails(student, studentCourses, studentGrades);
 }
 
 // Enhanced display student details
 function displayStudentDetails(student, courses, grades) {
     const container = document.getElementById('student-details-container');
-    
+
     // Build course progress HTML
     let coursesHTML = '';
     courses.forEach(course => {
@@ -664,7 +662,7 @@ function displayStudentDetails(student, courses, grades) {
         const grade = courseGrade ? courseGrade.grade : 'N/A';
         const status = grade !== 'N/A' && grade >= 60 ? 'Completed' : 'In Progress';
         const statusClass = status === 'Completed' ? 'status-completed' : 'status-progress';
-        
+
         coursesHTML += `
             <div class="course-progress-card">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -684,7 +682,7 @@ function displayStudentDetails(student, courses, grades) {
             </div>
         `;
     });
-    
+
     // Build complete HTML
     container.innerHTML = `
         <div class="student-profile-header text-center">
@@ -719,22 +717,22 @@ function submitGrade() {
     const courseName = document.getElementById('courseName').value;
     const gradeValue = document.getElementById('gradeValue').value;
     const assessmentType = document.getElementById('assessmentType').value;
-    
+
     // Simple validation
     if (!studentName || !courseName || !gradeValue || !assessmentType) {
         showNotification('Please fill in all fields', 'error');
         return;
     }
-    
+
     if (gradeValue < 0 || gradeValue > 100) {
         showNotification('Grade must be between 0 and 100', 'error');
         return;
     }
-    
+
     // Find student and course
     const student = studentsData.find(s => s.name === studentName);
     const course = coursesData.find(c => c.name === courseName);
-    
+
     if (student && course) {
         // Add grade to gradesData
         gradesData.push({
@@ -745,15 +743,15 @@ function submitGrade() {
             courseId: course.id
         });
     }
-    
+
     // Simulate form submission
     showNotification(`Grade submitted successfully!`, 'success');
-    
+
     // Close modal and reset form
     const modal = bootstrap.Modal.getInstance(document.getElementById('gradeModal'));
     modal.hide();
     document.getElementById('gradeForm').reset();
-    
+
     // Refresh grades if on grades page
     if (document.getElementById('grades-page').classList.contains('active')) {
         displayGradesRanking();
@@ -764,13 +762,13 @@ function submitGrade() {
 function addInteractiveFeatures() {
     // Add hover effects to cards
     document.querySelectorAll('.card').forEach(card => {
-        card.addEventListener('mouseenter', function() {
+        card.addEventListener('mouseenter', function () {
             this.style.transition = 'all 0.3s';
         });
     });
-    
+
     // Add keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         // Ctrl + D for dashboard
         if (e.ctrlKey && e.key === 'd') {
             e.preventDefault();
