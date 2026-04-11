@@ -1160,3 +1160,140 @@ body.dark-mode .student-item:hover .badge {
     cursor: pointer;
 
 }
+
+/* Reports Page Styles */
+#reports-page .card {
+    transition: all 0.3s;
+}
+
+#reports-page .form-range {
+    cursor: pointer;
+}
+
+#reports-page .form-range:focus {
+    outline: none;
+}
+
+#reports-page .form-range::-webkit-slider-thumb {
+    background: var(--primary-color);
+}
+
+/* Report Preview Table Styles */
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.report-table th {
+    background: rgb(31, 50, 69);
+    color: white;
+    padding: 12px;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.report-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.report-table tr:hover {
+    background: #f8f9fc;
+}
+
+.report-table .grade-high {
+    color: #1cc88a;
+    font-weight: bold;
+}
+
+.report-table .grade-medium {
+    color: #f6c23e;
+    font-weight: bold;
+}
+
+.report-table .grade-low {
+    color: #e74a3b;
+    font-weight: bold;
+}
+
+/* Summary Cards */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.summary-card {
+    background: linear-gradient(135deg, rgb(31, 50, 69), #1a2a3a);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.summary-card h3 {
+    font-size: 28px;
+    margin: 10px 0;
+    color: white;
+}
+
+.summary-card i {
+    font-size: 32px;
+    opacity: 0.8;
+}
+
+/* Dark Mode Report Styles */
+body.dark-mode .report-table th {
+    background: #0f1419;
+    color: #e9ecef;
+}
+
+body.dark-mode .report-table td {
+    border-bottom-color: #2a313c;
+}
+
+body.dark-mode .report-table tr:hover {
+    background: #1a222d;
+}
+
+body.dark-mode .summary-card {
+    background: linear-gradient(135deg, #131823, #0f1419);
+}
+
+/* Print Styles */
+@media print {
+
+    .sidebar,
+    .btn-toolbar,
+    .card-header .btn,
+    .calendar-box,
+    .nav-tabs,
+    #reports-page .card-header .btn-group,
+    #reports-page .btn-toolbar {
+        display: none !important;
+    }
+
+    .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+
+    .report-table th {
+        background: #f0f0f0 !important;
+        color: black !important;
+    }
+
+    body.dark-mode .report-table th {
+        background: #ddd !important;
+        color: black !important;
+    }
+}
