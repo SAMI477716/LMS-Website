@@ -55,6 +55,11 @@
                 </a>
               </li>
               <li class="nav-item">
+  <a class="nav-link" href="#" data-page="reports">
+    <i class="bi bi-graph-up me-2"></i>Reports
+  </a>
+</li>
+              <li class="nav-item">
                 <a class="nav-link" href="#" data-page="settings">
                   <i class="bi bi-gear me-2"></i>Settings
                 </a>
@@ -618,6 +623,106 @@
             </div>
           </div>
 
+        <!-- Reports Dashboard Page -->
+<div id="reports-page" class="page">
+  <div
+    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+  >
+    <h1 class="h2">Reports & Analytics</h1>
+    <div class="btn-toolbar gap-2">
+      <button type="button" class="btn btn-sm btn-success" onclick="exportToCSV()">
+        <i class="bi bi-file-spreadsheet me-1"></i>Export CSV
+      </button>
+      <button type="button" class="btn btn-sm btn-danger" onclick="exportToPDF()">
+        <i class="bi bi-file-pdf me-1"></i>Export PDF
+      </button>
+      <button type="button" class="btn btn-sm btn-primary" onclick="printReport()">
+        <i class="bi bi-printer me-1"></i>Print
+      </button>
+    </div>
+  </div>
+
+  <!-- Report Filters -->
+  <div class="card mb-4">
+    <div class="card-header bg-white">
+      <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Report Filters</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-3 mb-3">
+          <label class="form-label">Report Type</label>
+          <select class="form-select" id="reportType" onchange="updateReportPreview()">
+            <option value="students">Student Report</option>
+            <option value="grades">Grade Report</option>
+            <option value="courses">Course Report</option>
+            <option value="performance">Performance Summary</option>
+          </select>
+        </div>
+        <div class="col-md-3 mb-3">
+          <label class="form-label">Batch</label>
+          <select class="form-select" id="reportBatch" onchange="updateReportPreview()">
+            <option value="all">All Batches</option>
+            <option value="Batch 1">Batch 1</option>
+            <option value="Batch 2">Batch 2</option>
+          </select>
+        </div>
+        <div class="col-md-3 mb-3">
+          <label class="form-label">Date Range</label>
+          <select class="form-select" id="reportDateRange" onchange="updateReportPreview()">
+            <option value="all">All Time</option>
+            <option value="week">Last 7 Days</option>
+            <option value="month">Last 30 Days</option>
+            <option value="semester">This Semester</option>
+          </select>
+        </div>
+        <div class="col-md-3 mb-3">
+          <label class="form-label">Sort By</label>
+          <select class="form-select" id="reportSort" onchange="updateReportPreview()">
+            <option value="name">Name (A-Z)</option>
+            <option value="grade">Grade (High to Low)</option>
+            <option value="date">Date (Newest)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Course Filter</label>
+          <select class="form-select" id="reportCourse" onchange="updateReportPreview()">
+            <option value="all">All Courses</option>
+            <option value="GitHub Basics for Beginners">GitHub Basics</option>
+            <option value="LinkedIn Essentials for Beginners">LinkedIn Essentials</option>
+            <option value="Canva Design Basics for Beginners">Canva Design</option>
+            <option value="Getting Started with Google Docs">Google Docs</option>
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Grade Range (Min)</label>
+          <input type="range" class="form-range" id="gradeMin" min="0" max="100" value="0" oninput="updateGradeMinValue(this.value)">
+          <span id="gradeMinValue" class="small">0%</span>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Grade Range (Max)</label>
+          <input type="range" class="form-range" id="gradeMax" min="0" max="100" value="100" oninput="updateGradeMaxValue(this.value)">
+          <span id="gradeMaxValue" class="small">100%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Preview -->
+  <div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>Report Preview</h5>
+      <div class="text-muted small" id="reportStats"></div>
+    </div>
+    <div class="card-body">
+      <div id="reportPreviewContainer" style="max-height: 500px; overflow-y: auto;">
+        <!-- Report content will be dynamically loaded here -->
+      </div>
+    </div>
+  </div>
+</div>
+          
           <!-- Settings Dashboard Page -->
           <div id="settings-page" class="page">
             <div
