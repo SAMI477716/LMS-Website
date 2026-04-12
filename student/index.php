@@ -1,13 +1,57 @@
 <?php
 session_start();
+include('../includes/db_connection.php'); 
 
-// If the user is not logged in OR they are not a student, kick them back to login
+// 1. Security Check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
     header("Location: ../Login Page 2.0/index.html");
     exit();
 }
-?>
 
+$user_id = $_SESSION['user_id'];
+$user_name = $_SESSION['username'];
+
+// Calculate Average Grade for the banner
+$grade_q = "SELECT AVG(score) as avg_score FROM grades WHERE user_id = $user_id";
+$grade_r = $conn->query($grade_q);
+$grade_row = $grade_r->fetch_assoc();
+$display_grade = $grade_row['avg_score'] ? round($grade_row['avg_score'], 1) : 0;
+
+// Set dynamic labels
+$grade_label = ($display_grade >= 75) ? "Great job!" : "Keep pushing!";
+$grade_color = ($display_grade >= 50) ? "text-success" : "text-danger";
+
+/*2. GRADE LOGIC
+$grade_query = "SELECT AVG(score) as avg_score FROM grades WHERE user_id = $user_id";
+$grade_result = $conn->query($grade_query);
+$grade_row = $grade_result->fetch_assoc();
+
+$display_grade = $grade_row['avg_score'] ? round($grade_row['avg_score'], 1) : 0;
+
+$grade_label = "Keep it up!";
+$grade_color = "text-success";*/
+
+if ($display_grade < 50) {
+    $grade_label = "Needs improvement";
+    $grade_color = "text-danger";
+} elseif ($display_grade < 75) {
+    $grade_label = "Good progress";
+    $grade_color = "text-warning";
+} 
+
+// 3. CREDIT LOGIC (MOVED OUTSIDE BRACKETS)
+// This must be outside the if/else so it runs for every student
+$total_courses_query = "SELECT COUNT(*) as count FROM courses WHERE user_id = $user_id";
+$total_result = $conn->query($total_courses_query);
+$total_row = $total_result->fetch_assoc();
+$credits_earned = $total_row['count'] * 4; 
+
+// 4. PENDING TASKS LOGIC
+$tasks_query = "SELECT COUNT(*) as pending_count FROM assignments WHERE status = 'pending' AND user_id = $user_id";
+$tasks_result = $conn->query($tasks_query);
+$tasks_row = $tasks_result->fetch_assoc();
+$pending_tasks = $tasks_row['pending_count'] ?? 0;
+?>
 
 <!doctype html>
 <html lang="en">
@@ -119,12 +163,30 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
                       class="d-flex justify-content-between align-items-center"
                     >
                       <div>
-                        <h6 class="card-subtitle text-muted">
-                          Courses Enrolled
-                        </h6>
-                        <h2 class="card-title mb-0">4</h2>
-                        <small class="text-success">2 in progress</small>
-                      </div>
+    <h6 class="card-subtitle text-muted">Courses Enrolled</h6>
+    
+    <?php
+    // Count total courses for the logged-in student
+    $user_id = $_SESSION['user_id'];
+    $count_query = "SELECT COUNT(*) as total FROM courses WHERE user_id = $user_id";
+    $count_result = $conn->query($count_query);
+    $count_row = $count_result->fetch_assoc();
+    $total_courses = $count_row['total'];
+
+    // Count only active/in-progress courses
+    $progress_query = "SELECT COUNT(*) as in_progress FROM courses WHERE user_id = $user_id AND progress > 0 AND progress < 100";
+    $progress_result = $conn->query($progress_query);
+    $progress_row = $progress_result->fetch_assoc();
+    $in_progress = $progress_row['in_progress'];
+    ?>
+
+    
+
+    <h2 class="card-title mb-0"><?php echo $total_courses; ?></h2>
+    <small class="text-success"><?php echo $in_progress; ?> in progress</small>
+</div>
+
+
                       <div class="stat-icon bg-primary">
                         <i class="bi bi-book-fill"></i>
                       </div>
@@ -139,10 +201,14 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
                       class="d-flex justify-content-between align-items-center"
                     >
                       <div>
-                        <h6 class="card-subtitle text-muted">Overall Grade</h6>
-                        <h2 class="card-title mb-0">84%</h2>
-                        <small class="text-success">↑ 3% this month</small>
-                      </div>
+    <h6 class="card-subtitle text-muted">Overall Grade</h6>
+    
+    <h2 class="card-title mb-0"><?php echo $display_grade; ?>%</h2>
+    
+    <small class="<?php echo $grade_color; ?>">
+        <i class="bi bi-graph-up-arrow me-1"></i><?php echo $grade_label; ?>
+    </small>
+</div>
                       <div class="stat-icon bg-success">
                         <i class="bi bi-star-fill"></i>
                       </div>
@@ -158,8 +224,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
                     >
                       <div>
                         <h6 class="card-subtitle text-muted">Pending Tasks</h6>
-                        <h2 class="card-title mb-0">5</h2>
-                        <small class="text-warning">2 due this week</small>
+                        <h2 class="card-title mb-0"><?php echo $pending_tasks; ?></h2>
+<small class="text-warning"><?php echo $pending_tasks; ?> due soon</small>
                       </div>
                       <div class="stat-icon bg-warning">
                         <i class="bi bi-hourglass-split"></i>
@@ -170,83 +236,56 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
               </div>
             </div>
 
-            <!-- Course Progress Section -->
             <div class="row mb-4">
-              <div class="col-12">
-                <div class="card">
-                  <div class="card-header bg-white">
-                    <h5 class="mb-0">My Course Progress</h5>
-                  </div>
-                  <div class="card-body">
-                    <div class="row">
-                      <div class="col-md-6">
-                        <div class="course-item mb-3">
-                          <h6>GitHub Basics for Beginners</h6>
-                          <div class="progress mb-2">
-                            <div
-                              class="progress-bar bg-success"
-                              style="width: 85%"
-                            >
-                              85% Complete
-                            </div>
-                          </div>
-                          <small class="text-muted"
-                            >Batch 1 · Last activity: 2 hours ago</small
-                          >
-                        </div>
-
-                        <div class="course-item mb-3">
-                          <h6>LinkedIn Essentials for Beginners</h6>
-                          <div class="progress mb-2">
-                            <div
-                              class="progress-bar bg-info"
-                              style="width: 72%"
-                            >
-                              72% Complete
-                            </div>
-                          </div>
-                          <small class="text-muted"
-                            >Batch 1 · Last activity: 1 day ago</small
-                          >
-                        </div>
-                      </div>
-
-                      <div class="col-md-6">
-                        <div class="course-item mb-3">
-                          <h6>Canva Design Basics for Beginners</h6>
-                          <div class="progress mb-2">
-                            <div
-                              class="progress-bar bg-success"
-                              style="width: 90%"
-                            >
-                              90% Complete
-                            </div>
-                          </div>
-                          <small class="text-muted"
-                            >Batch 1 · Last activity: 5 hours ago</small
-                          >
-                        </div>
-
-                        <div class="course-item mb-3">
-                          <h6>Getting Started with Google Docs</h6>
-                          <div class="progress mb-2">
-                            <div
-                              class="progress-bar bg-info"
-                              style="width: 68%"
-                            >
-                              68% Complete
-                            </div>
-                          </div>
-                          <small class="text-muted"
-                            >Batch 1 · Last activity: 3 days ago</small
-                          >
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold">My Course Progress</h5>
             </div>
+            <div class="card-body">
+                <div class="row">
+                    <?php
+                    // Fetch all courses for the logged-in student
+                    $progress_query = "SELECT course_name, progress, last_activity FROM courses WHERE user_id = $user_id";
+                    $progress_result = $conn->query($progress_query);
+
+                    if ($progress_result->num_rows > 0):
+                        while($course = $progress_result->fetch_assoc()):
+                            // Determine bar color based on progress percentage
+                            $bar_color = ($course['progress'] >= 80) ? 'bg-success' : 'bg-info';
+                            
+                            // Format the last activity date
+                            $last_active = date("M d, Y", strtotime($course['last_activity']));
+                    ?>
+                    <div class="col-md-6">
+                        <div class="course-item mb-4">
+                            <h6 class="text-dark fw-semibold"><?php echo $course['course_name']; ?></h6>
+                            <div class="progress mb-2" style="height: 18px; border-radius: 10px;">
+                                <div class="progress-bar <?php echo $bar_color; ?> progress-bar-striped progress-bar-animated" 
+                                     role="progressbar" 
+                                     style="width: <?php echo $course['progress']; ?>%">
+                                    <?php echo $course['progress']; ?>% Complete
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                <i class="bi bi-clock-history me-1"></i>
+                                Last activity: <?php echo $last_active; ?>
+                            </small>
+                        </div>
+                    </div>
+                    <?php 
+                        endwhile; 
+                    else: 
+                    ?>
+                    <div class="col-12 text-center py-4">
+                        <p class="text-muted">You are not enrolled in any courses yet.</p>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
             <!-- Recent Activity and Upcoming -->
             <div class="row">
@@ -465,128 +504,98 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
             </div>
           </div>
 
-          <!-- My Grades Page -->
           <div id="grades-page" class="page">
-            <div
-              class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
-            >
-              <h1 class="h2">My Grades</h1>
-            </div>
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">My Grades</h1>
+    </div>
 
-            <div class="row">
-              <div class="col-md-4 mb-4">
-                <div class="card stat-card text-center">
-                  <div class="card-body">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card stat-card text-center">
+                <div class="card-body">
                     <h6 class="text-muted">Overall GPA</h6>
-                    <h2 class="display-4 text-primary">3.6</h2>
-                    <small class="text-success">↑ 0.2 from last term</small>
-                  </div>
+                    <h2 class="display-4 text-primary"><?php echo round(($display_grade / 100) * 4, 1); ?></h2>
+                    <small class="text-success">Based on current average</small>
                 </div>
-              </div>
-
-              <div class="col-md-4 mb-4">
-                <div class="card stat-card text-center">
-                  <div class="card-body">
-                    <h6 class="text-muted">Average Grade</h6>
-                    <h2 class="display-4 text-success">84%</h2>
-                    <small class="text-success">B+ Average</small>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-md-4 mb-4">
-                <div class="card stat-card text-center">
-                  <div class="card-body">
-                    <h6 class="text-muted">Credits Earned</h6>
-                    <h2 class="display-4 text-info">24</h2>
-                    <small class="text-muted">of 36 total</small>
-                  </div>
-                </div>
-              </div>
             </div>
+        </div>
 
-            <div class="card">
-              <div class="card-header bg-white">
-                <h5 class="mb-0">Course Grades</h5>
-              </div>
-              <div class="card-body">
-                <div class="table-responsive">
-                  <table class="table table-hover">
+        <div class="col-md-4 mb-4">
+            <div class="card stat-card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Average Grade</h6>
+                    <h2 class="display-4 text-success"><?php echo $display_grade; ?>%</h2>
+                    <small class="<?php echo $grade_color; ?>"><?php echo $grade_label; ?></small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card stat-card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Credits Earned</h6>
+                    <h2 class="display-4 text-info"><?php echo $credits_earned; ?></h2>
+<small class="text-muted">of 36 total</small>
+                    <small class="text-muted">of 36 total</small>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Course Grades</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
                     <thead>
-                      <tr>
-                        <th>Course</th>
-                        <th>Grade</th>
-                        <th>Status</th>
-                        <th>Progress</th>
-                      </tr>
+                        <tr>
+                            <th>Course</th>
+                            <th>Grade</th>
+                            <th>Status</th>
+                            <th>Progress</th>
+                        </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <td>GitHub Basics for Beginners</td>
-                        <td><span class="badge bg-success">88%</span></td>
-                        <td><span class="badge bg-info">In Progress</span></td>
-                        <td>
-                          <div class="progress" style="height: 20px">
-                            <div
-                              class="progress-bar bg-success"
-                              style="width: 85%"
-                            >
-                              85%
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>LinkedIn Essentials</td>
-                        <td><span class="badge bg-success">85%</span></td>
-                        <td><span class="badge bg-info">In Progress</span></td>
-                        <td>
-                          <div class="progress" style="height: 20px">
-                            <div
-                              class="progress-bar bg-success"
-                              style="width: 72%"
-                            >
-                              72%
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>Canva Design Basics</td>
-                        <td><span class="badge bg-success">92% </span></td>
-                        <td><span class="badge bg-info">In Progress</span></td>
-                        <td>
-                          <div class="progress" style="height: 20px">
-                            <div
-                              class="progress-bar bg-success"
-                              style="width: 90%"
-                            >
-                              90%
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>Google Docs Basics</td>
-                        <td><span class="badge bg-success">82%</span></td>
-                        <td><span class="badge bg-info">In Progress</span></td>
-                        <td>
-                          <div class="progress" style="height: 20px">
-                            <div
-                              class="progress-bar bg-success"
-                              style="width: 68%"
-                            >
-                              68%
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
+                        <?php
+                        // Fetch courses and their corresponding grades from the database
+                        $query = "SELECT c.course_name, c.progress, g.score 
+                                  FROM courses c 
+                                  LEFT JOIN grades g ON c.course_name = g.course_name 
+                                  WHERE c.user_id = $user_id";
+                        $result = $conn->query($query);
+
+                        if ($result->num_rows > 0) {
+                            while($row = $result->fetch_assoc()) {
+                                $score = $row['score'] ? $row['score'] . "%" : "N/A";
+                                $prog = $row['progress'];
+                                ?>
+                                <tr>
+                                    <td><?php echo $row['course_name']; ?></td>
+                                    <td><span class="badge bg-success"><?php echo $score; ?></span></td>
+                                    <td><span class="badge bg-info">In Progress</span></td>
+                                    <td>
+                                        <div class="progress" style="height: 20px">
+                                            <div class="progress-bar bg-success" style="width: <?php echo $prog; ?>%">
+                                                <?php echo $prog; ?>%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php
+                            }
+                        } else {
+                            echo "<tr><td colspan='4' class='text-center'>No grades found.</td></tr>";
+                        }
+                        ?>
                     </tbody>
-                  </table>
-                </div>
-              </div>
+                </table>
             </div>
-          </div>
+        </div>
+    </div>
+</div>
 
           <!-- Settings Page -->
           <div id="settings-page" class="page">

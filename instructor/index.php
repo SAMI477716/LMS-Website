@@ -1,3 +1,25 @@
+<?php
+session_start();
+include('../includes/db_connection.php'); 
+
+// 1. Security Check: If not logged in OR not an instructor, redirect to login
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'instructor') {
+    header("Location: ../Login Page 2.0/index.html");
+    exit();
+}
+
+// 2. Fetch Instructor Data
+$user_id = $_SESSION['user_id'];
+$instructor_name = $_SESSION['username'];
+
+// 3. (Optional) Fetch stats for the instructor's overview
+// For example: Count total courses this instructor has created
+$course_count_query = "SELECT COUNT(*) as total_courses FROM courses WHERE user_id = $user_id";
+$course_result = $conn->query($course_count_query);
+$course_stats = $course_result->fetch_assoc();
+?>
+
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -1237,96 +1259,65 @@ Passionate educator with 5+ years of experience in web development and design.</
       </div>
     </div>
 
-    <!-- Add Manual Grade Modal -->
-    <div class="modal fade" id="gradeModal" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Add Manual Grade</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <form id="gradeForm">
-              <div class="mb-3">
-                <label for="studentName" class="form-label">Student Name</label>
-                <select class="form-select" id="studentName" required>
-                  <option value="">Select student</option>
-                  <option value="Sami">Sami (Batch 1)</option>
-                  <option value="Tsi">Tsi (Batch 1)</option>
-                  <option value="Miky">Miky (Batch 2)</option>
-                  <option value="Emma">Emma (Batch 2)</option>
-                  <option value="John">John (Batch 1)</option>
-                  <option value="Bety">Bety (Batch 2)</option>
-                  <option value="Lidiya">Lidiya (Batch 2)</option>
-                  <option value="Alex">Abel (Batch 1)</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="courseName" class="form-label">Course</label>
-                <select class="form-select" id="courseName" required>
-                  <option value="">Select course</option>
-                  <option value="GitHub Basics for Beginners">
-                    GitHub Basics
-                  </option>
-                  <option value="LinkedIn Essentials for Beginners">
-                    LinkedIn Essentials
-                  </option>
-                  <option value="Canva Design Basics for Beginners">
-                    Canva Design
-                  </option>
-                  <option value="Getting Started with Google Docs">
-                    Google Docs
-                  </option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="gradeValue" class="form-label">Grade (%)</label>
-                <input
-                  type="number"
-                  class="form-control"
-                  id="gradeValue"
-                  min="0"
-                  max="100"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label for="assessmentType" class="form-label"
-                  >Assessment Type</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="assessmentType"
-                  placeholder="e.g., Midterm Project, Quiz"
-                  required
-                />
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
+<div class="modal fade" id="gradeModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Manual Grade</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="../includes/process_grade.php" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="student_id" class="form-label">Student ID</label>
+            <input 
+              type="number" 
+              name="student_id" 
+              class="form-control" 
+              placeholder="Enter User ID (e.g., 1 for tsi)" 
+              required
             >
-              Cancel
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              onclick="submitGrade()"
-            >
-              Submit Grade
-            </button>
+          </div>
+          <div class="mb-3">
+            <label for="course_name" class="form-label">Course Name</label>
+            <select class="form-select" name="course_name" required>
+              <option value="">Select course</option>
+              <option value="PHP Backend Development">PHP Backend</option>
+              <option value="Database Management Systems">Database Systems</option>
+              <option value="UI/UX Design Principles">UI/UX Design</option>
+              <option value="GitHub Basics for Beginners">GitHub Basics</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="score" class="form-label">Grade (%)</label>
+            <input
+              type="number"
+              name="score"
+              class="form-control"
+              min="0"
+              max="100"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="assessment_type" class="form-label">Assessment Type</label>
+            <input
+              type="text"
+              name="assessment_type"
+              class="form-control"
+              placeholder="e.g., Midterm Project, Quiz"
+              required
+            />
           </div>
         </div>
-      </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" name="submit_grade" class="btn btn-primary">Submit Grade</button>
+        </div>
+      </form>
     </div>
+  </div>
+</div>
 
     <!-- Add Course Modal (New) -->
     <div class="modal fade" id="addCourseModal" tabindex="-1">
