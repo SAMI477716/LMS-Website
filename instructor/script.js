@@ -816,3 +816,349 @@ window.saveAppearanceSettings = saveAppearanceSettings;
 
 const today = new Date().toISOString().split("T")[0];
 document.getElementById("calendar").value = today;
+
+// ============ GOOGLE FORMS INTEGRATION ============
+
+// Store Google Forms data with student assignments
+let googleFormsData = [];
+let formSubmissions = {};
+
+// Current student being viewed
+let currentViewingStudentId = null;
+
+// Initialize Google Forms
+function initGoogleForms() {
+    loadGoogleFormsFromStorage();
+    loadSubmissionsFromStorage();
+}
+
+// Load forms from localStorage
+function loadGoogleFormsFromStorage() {
+    const saved = localStorage.getItem('googleFormsData');
+    if (saved) {
+        googleFormsData = JSON.parse(saved);
+    } else {
+        // Sample Google Forms with student assignments
+        googleFormsData = [
+            {
+                id: 'form1',
+                title: 'GitHub Basics Quiz',
+                course: 'GitHub Basics for Beginners',
+                embedUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdummy1/viewform?embedded=true',
+                description: 'Test your knowledge of Git commands and GitHub workflow',
+                assignedTo: ['ST001', 'ST002', 'ST005', 'ST008'],
+                dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                points: 100,
+                createdAt: new Date().toISOString()
+            },
+            {
+                id: 'form2',
+                title: 'Canva Design Assessment',
+                course: 'Canva Design Basics for Beginners',
+                embedUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdummy2/viewform?embedded=true',
+                description: 'Showcase your Canva design skills',
+                assignedTo: ['ST003', 'ST004', 'ST006', 'ST007'],
+                dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+                points: 100,
+                createdAt: new Date().toISOString()
+            },
+            {
+                id: 'form3',
+                title: 'LinkedIn Profile Review',
+                course: 'LinkedIn Essentials for Beginners',
+                embedUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdummy3/viewform?embedded=true',
+                description: 'Submit your LinkedIn profile for review',
+                assignedTo: ['ST001', 'ST002', 'ST003', 'ST004'],
+                dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+                points: 50,
+                createdAt: new Date().toISOString()
+            }
+        ];
+        saveGoogleFormsToStorage();
+    }
+}
+
+// Load submissions from localStorage
+function loadSubmissionsFromStorage() {
+    const saved = localStorage.getItem('formSubmissions');
+    if (saved) {
+        formSubmissions = JSON.parse(saved);
+    } else {
+        formSubmissions = {};
+        saveSubmissionsToStorage();
+    }
+}
+
+// Save forms to localStorage
+function saveGoogleFormsToStorage() {
+    localStorage.setItem('googleFormsData', JSON.stringify(googleFormsData));
+}
+
+// Save submissions to localStorage
+function saveSubmissionsToStorage() {
+    localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
+}
+
+// Display Google Forms for a specific student
+function displayStudentGoogleForms(studentId) {
+    const container = document.getElementById('student-google-forms-list');
+    if (!container) return;
+
+    // Get forms assigned to this student
+    const studentForms = googleFormsData.filter(form =>
+        form.assignedTo && form.assignedTo.includes(studentId)
+    );
+
+    if (studentForms.length === 0) {
+        container.innerHTML = `
+            <div class="col-12 text-center py-4">
+                <i class="bi bi-google fs-1 text-muted"></i>
+                <p class="text-muted mt-2">No Google Forms assigned to this student yet.</p>
+                <button class="btn btn-sm btn-outline-primary" onclick="showAddGoogleFormForStudent()">
+                    <i class="bi bi-plus-circle me-1"></i>Assign Form
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    studentForms.forEach(form => {
+        const dueDate = new Date(form.dueDate);
+        const isOverdue = dueDate < new Date();
+        const hasSubmitted = checkStudentSubmission(form.id, studentId);
+        const submission = getStudentSubmission(form.id, studentId);
+
+        html += `
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="google-form-card" onclick="viewStudentGoogleForm('${form.id}', '${studentId}')">
+                    <div class="google-form-header">
+                        <div class="google-form-icon">
+                            <i class="bi bi-google"></i>
+                        </div>
+                        <div class="google-form-status">
+                            ${hasSubmitted ?
+                '<i class="bi bi-check-circle-fill text-success"></i> Completed' :
+                '<i class="bi bi-hourglass-split"></i> Pending'}
+                        </div>
+                    </div>
+                    <div class="google-form-body">
+                        <h6>${escapeHtml(form.title)}</h6>
+                        <small class="text-muted">${form.course}</small>
+                        <p class="small mt-2">${escapeHtml(form.description) || 'No description'}</p>
+                        ${hasSubmitted && submission ? `
+                            <div class="alert alert-success alert-sm py-1 mb-2">
+                                <small><i class="bi bi-trophy"></i> Grade: ${submission.grade}/${form.points} (${Math.round((submission.grade / form.points) * 100)}%)</small>
+                            </div>
+                        ` : ''}
+                        <div class="form-meta d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="bi bi-star me-1"></i>${form.points} pts
+                            </span>
+                            <span class="${isOverdue ? 'form-pending-badge' : 'form-due-badge'}">
+                                <i class="bi bi-calendar me-1"></i>Due: ${dueDate.toLocaleDateString()}
+                            </span>
+                        </div>
+                        ${hasSubmitted ? `
+                            <div class="mt-2">
+                                <span class="form-submitted-badge">
+                                    <i class="bi bi-check-circle me-1"></i>Submitted on ${new Date(submission.submittedAt).toLocaleDateString()}
+                                </span>
+                            </div>
+                        ` : `
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-primary w-100" onclick="event.stopPropagation(); viewStudentGoogleForm('${form.id}', '${studentId}')">
+                                    <i class="bi bi-file-text me-1"></i>Take Assessment
+                                </button>
+                            </div>
+                        `}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+// Check if student has submitted a specific form
+function checkStudentSubmission(formId, studentId) {
+    return formSubmissions[formId] &&
+        formSubmissions[formId].some(sub => sub.studentId === studentId);
+}
+
+// Get student's submission for a form
+function getStudentSubmission(formId, studentId) {
+    if (!formSubmissions[formId]) return null;
+    return formSubmissions[formId].find(sub => sub.studentId === studentId);
+}
+
+// View Google Form for a specific student
+function viewStudentGoogleForm(formId, studentId) {
+    const form = googleFormsData.find(f => f.id === formId);
+    if (!form) return;
+
+    document.getElementById('viewFormTitle').textContent = form.title;
+    document.getElementById('googleFormIframe').src = form.embedUrl;
+
+    // Store current context
+    window.currentGoogleFormId = formId;
+    window.currentGoogleFormStudentId = studentId;
+    window.currentGoogleFormPoints = form.points;
+
+    const modal = new bootstrap.Modal(document.getElementById('viewGoogleFormModal'));
+    modal.show();
+}
+
+// Show modal to assign Google Form to student
+function showAddGoogleFormForStudent() {
+    if (!currentViewingStudentId) {
+        showNotification('Please select a student first', 'warning');
+        return;
+    }
+
+    // Populate the form modal with student info
+    const student = studentsData.find(s => s.id === currentViewingStudentId);
+    if (student) {
+        document.getElementById('assignFormStudentInfo').value = `${student.name} (${student.id})`;
+        document.getElementById('assignFormStudentId').value = currentViewingStudentId;
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('assignGoogleFormModal'));
+    modal.show();
+}
+
+// Assign Google Form to student
+function assignGoogleFormToStudent() {
+    const studentId = document.getElementById('assignFormStudentId').value;
+    const formTitle = document.getElementById('assignFormTitle').value;
+    const formCourse = document.getElementById('assignFormCourse').value;
+    const formEmbedUrl = document.getElementById('assignFormEmbedUrl').value;
+    const formDescription = document.getElementById('assignFormDescription').value;
+    const formDueDate = document.getElementById('assignFormDueDate').value;
+    const formPoints = document.getElementById('assignFormPoints').value;
+
+    if (!formTitle || !formCourse || !formEmbedUrl) {
+        showNotification('Please fill in all required fields', 'error');
+        return;
+    }
+
+    // Validate Google Form URL
+    if (!formEmbedUrl.includes('docs.google.com/forms')) {
+        showNotification('Please enter a valid Google Form URL', 'error');
+        return;
+    }
+
+    const newForm = {
+        id: 'form_' + Date.now(),
+        title: formTitle,
+        course: formCourse,
+        embedUrl: formEmbedUrl,
+        description: formDescription,
+        assignedTo: [studentId],
+        dueDate: formDueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        points: parseInt(formPoints) || 100,
+        createdAt: new Date().toISOString()
+    };
+
+    googleFormsData.push(newForm);
+    saveGoogleFormsToStorage();
+
+    // Refresh display for current student
+    if (currentViewingStudentId) {
+        displayStudentGoogleForms(currentViewingStudentId);
+    }
+
+    // Close modal and reset form
+    const modal = bootstrap.Modal.getInstance(document.getElementById('assignGoogleFormModal'));
+    modal.hide();
+    document.getElementById('assignGoogleForm').reset();
+
+    showNotification(`Google Form "${formTitle}" assigned to student!`, 'success');
+}
+
+// Submit Google Form response for student
+function submitGoogleFormResponse() {
+    const formId = window.currentGoogleFormId;
+    const studentId = window.currentGoogleFormStudentId;
+    const form = googleFormsData.find(f => f.id === formId);
+
+    if (!form || !studentId) return;
+
+    // Check if already submitted
+    if (checkStudentSubmission(formId, studentId)) {
+        const allowResubmissions = localStorage.getItem('allowResubmissions') === 'true';
+        if (!allowResubmissions) {
+            showNotification('You have already submitted this form. Resubmissions are not allowed.', 'warning');
+            return;
+        }
+    }
+
+    // Record submission
+    if (!formSubmissions[formId]) {
+        formSubmissions[formId] = [];
+    }
+
+    const student = studentsData.find(s => s.id === studentId);
+    const submission = {
+        studentId: studentId,
+        studentName: student ? student.name : 'Unknown',
+        submittedAt: new Date().toISOString(),
+        points: form.points,
+        grade: form.points,
+        formTitle: form.title
+    };
+
+    formSubmissions[formId].push(submission);
+    saveSubmissionsToStorage();
+
+    // Add to grades data
+    gradesData.push({
+        studentId: studentId,
+        studentName: student ? student.name : 'Unknown',
+        course: form.course,
+        grade: form.points,
+        courseId: 'form_' + formId,
+        assessmentType: 'Google Form',
+        assessmentName: form.title
+    });
+
+    // Animate success
+    const modalContent = document.querySelector('#viewGoogleFormModal .modal-content');
+    if (modalContent) {
+        modalContent.classList.add('form-submitted-animation');
+        setTimeout(() => {
+            modalContent.classList.remove('form-submitted-animation');
+        }, 500);
+    }
+
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('viewGoogleFormModal'));
+    if (modal) modal.hide();
+
+    // Refresh displays
+    if (currentViewingStudentId) {
+        displayStudentGoogleForms(currentViewingStudentId);
+    }
+    if (document.getElementById('grades-page')?.classList.contains('active')) {
+        displayGradesRanking();
+    }
+
+    showNotification(`Form "${form.title}" submitted successfully! Grade: ${form.points}/${form.points}`, 'success');
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Make all functions globally available
+window.initGoogleForms = initGoogleForms;
+window.displayStudentGoogleForms = displayStudentGoogleForms;
+window.viewStudentGoogleForm = viewStudentGoogleForm;
+window.showAddGoogleFormForStudent = showAddGoogleFormForStudent;
+window.assignGoogleFormToStudent = assignGoogleFormToStudent;
+window.submitGoogleFormResponse = submitGoogleFormResponse;
