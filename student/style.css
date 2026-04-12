@@ -463,3 +463,49 @@ body.dark-mode .assignment-item:hover {
         margin-top: 20px;
     }
 }
+/* Google Forms Styles for Student Page */
+.google-form-card {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: white;
+}
+
+.google-form-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.form-submitted-badge {
+    background: #28a745;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+}
+
+.form-pending-badge {
+    background: #dc3545;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+}
+
+.student-profile-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+    padding: 30px;
+    border-radius: 15px;
+    color: white;
+    margin-bottom: 20px;
+}
+
+/* Dark Mode */
+body.dark-mode .google-form-card {
+    background: #2c3e50;
+    border-color: #3a4a5a;
+    color: #e0e0e0;
+}
