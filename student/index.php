@@ -101,6 +101,11 @@ $pending_tasks = $tasks_row['pending_count'] ?? 0;
                   <i class="bi bi-pencil-square me-2"></i>Assignments
                 </a>
               </li>
+                <li class="nav-item">
+  <a class="nav-link" href="#" data-page="student-details" onclick="showMyProfile()">
+    <i class="bi bi-person-circle me-2"></i> Profile
+  </a>
+</li>
               <li class="nav-item">
                 <a class="nav-link" href="#" data-page="grades">
                   <i class="bi bi-trophy me-2"></i>My Grades
@@ -596,6 +601,32 @@ $pending_tasks = $tasks_row['pending_count'] ?? 0;
         </div>
     </div>
 </div>
+            <!-- Student Details Page - Add this before Settings Page -->
+<div id="student-details-page" class="page">
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">My Details</h1>
+    <button class="btn btn-outline-secondary" onclick="showPage('dashboard')">
+      <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+    </button>
+  </div>
+
+  <!-- Student Profile -->
+  <div id="student-profile-container"></div>
+
+  <!-- Google Forms Assessments Section -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5 class="mb-0"><i class="bi bi-google me-2"></i>My Google Forms Assessments</h5>
+        </div>
+        <div class="card-body">
+          <div id="student-google-forms-list" class="row"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
           <!-- Settings Page -->
           <div id="settings-page" class="page">
@@ -943,7 +974,26 @@ Learning web development and design. Passionate about creating beautiful interfa
         </main>
       </div>
     </div>
-
+<!-- View Google Form Modal -->
+<div class="modal fade" id="viewGoogleFormModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="viewFormTitle">Google Form</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <iframe id="googleFormIframe" src="" width="100%" height="600px" frameborder="0"></iframe>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-success" onclick="submitGoogleFormResponse()">
+          <i class="bi bi-check-circle me-1"></i>Submit Form
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JS -->
