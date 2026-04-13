@@ -10,25 +10,49 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
 $user_id = $_SESSION['user_id'];
 $user_name = $_SESSION['username'];
 
-// 1. Total Courses & In Progress
-$count_query = "SELECT 
-    COUNT(*) as total, 
-    SUM(CASE WHEN progress < 100 THEN 1 ELSE 0 END) as in_progress 
-    FROM courses WHERE user_id = $user_id";
-$count_result = $conn->query($count_query)->fetch_assoc();
-$total_courses = $count_result['total'] ?? 0;
-$in_progress = $count_result['in_progress'] ?? 0;
+/** * Helper Function for Status Requirements 
+ * Based on your new percentage logic
+ **/
+function getStatusDetails($percent) {
+    if ($percent < 20) {
+        return ['text' => 'Critical Warning', 'color' => 'bg-danger', 'text_color' => 'text-danger'];
+    } elseif ($percent >= 20 && $percent < 50) {
+        return ['text' => 'Needs Help', 'color' => 'bg-warning text-dark', 'text_color' => 'text-warning'];
+    } elseif ($percent >= 50 && $percent <= 75) {
+        return ['text' => 'On Track', 'color' => 'bg-info text-white', 'text_color' => 'text-info'];
+    } else {
+        return ['text' => 'Excellent', 'color' => 'bg-success', 'text_color' => 'text-success'];
+    }
+}
 
-// 2. Average Grade
+// 1. Enrollment Performance Progress
+// We calculate how many courses have at least one grade vs total courses
+$progress_query = "SELECT 
+    COUNT(c.id) as total_enrolled,
+    COUNT(DISTINCT g.course_name) as courses_with_grades
+    FROM courses c
+    LEFT JOIN grades g ON c.user_id = g.user_id AND c.course_name = g.course_name
+    WHERE c.user_id = $user_id";
+
+$prog_result = $conn->query($progress_query)->fetch_assoc();
+$total_courses = $prog_result['total_enrolled'] ?? 0;
+$courses_done = $prog_result['courses_with_grades'] ?? 0;
+
+// Calculate Overall Enrollment Progress %
+$enrollment_percent = ($total_courses > 0) ? round(($courses_done / $total_courses) * 100) : 0;
+$in_progress = $total_courses - $courses_done;
+
+// 2. Average Grade & Label
 $grade_query = "SELECT AVG(score) as avg_score FROM grades WHERE user_id = $user_id";
 $grade_result = $conn->query($grade_query)->fetch_assoc();
 $display_grade = $grade_result['avg_score'] ? round($grade_result['avg_score'], 1) : 0;
 
-if ($display_grade >= 90) { $grade_label = "Excellent"; $grade_color = "text-success"; }
-elseif ($display_grade >= 75) { $grade_label = "Good"; $grade_color = "text-primary"; }
-else { $grade_label = "Keep Improving"; $grade_color = "text-warning"; }
+// Apply your new Status Function to the overall grade
+$grade_status = getStatusDetails($display_grade);
+$grade_label = $grade_status['text'];
+$grade_color = $grade_status['text_color'];
 
-// 3. Pending Tasks (Now using the new assignment_id column)
+// 3. Pending Tasks
 $task_query = "SELECT COUNT(*) as pending FROM assignments a 
                LEFT JOIN grades g ON a.id = g.assignment_id AND g.user_id = $user_id 
                WHERE g.id IS NULL";
@@ -37,7 +61,8 @@ $task_result = $conn->query($task_query);
 $pending_tasks = $task_result ? $task_result->fetch_assoc()['pending'] : 0;
 
 // 4. Credits Earned
-$credits_earned = ($total_courses - $in_progress) * 3;
+// Static example: 3 credits per course that has a grade
+$credits_earned = $courses_done * 3;
 ?>
 
 <!doctype html>
@@ -273,6 +298,74 @@ $credits_earned = ($total_courses - $in_progress) * 3;
                         <p class="text-muted">You are not enrolled in any courses yet.</p>
                     </div>
                     <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">Upcoming Assignments</h5>
+                <span class="badge bg-primary rounded-pill"><?php echo $pending_tasks; ?> Pending</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Assignment Title</th>
+                                <th>Course</th>
+                                <th>Due Date</th>
+                                <th class="text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            // Query to find assignments that the student HAS NOT received a grade for yet
+                            $todo_query = "SELECT a.title, a.due_date, c.course_name 
+                                           FROM assignments a
+                                           JOIN courses c ON a.course_id = c.id
+                                           LEFT JOIN grades g ON a.id = g.assignment_id AND g.user_id = $user_id
+                                           WHERE g.id IS NULL AND c.user_id = $user_id
+                                           ORDER BY a.due_date ASC";
+                            
+                            $todo_result = $conn->query($todo_query);
+                            if ($todo_result->num_rows > 0):
+                                while($todo = $todo_result->fetch_assoc()): 
+                                    $is_overdue = (strtotime($todo['due_date']) < time()) ? true : false;
+                                ?>
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="fw-bold text-dark"><?php echo htmlspecialchars($todo['title']); ?></div>
+                                        </td>
+                                        <td><?php echo htmlspecialchars($todo['course_name']); ?></td>
+                                        <td>
+                                            <span class="<?php echo $is_overdue ? 'text-danger fw-bold' : ''; ?>">
+                                                <?php echo date("M d, Y", strtotime($todo['due_date'])); ?>
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <?php if($is_overdue): ?>
+                                                <span class="badge bg-danger">Overdue</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endwhile;
+                            else: ?>
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        <i class="bi bi-check-circle-fill text-success fs-2 d-block mb-2"></i>
+                                        All caught up! No pending tasks.
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

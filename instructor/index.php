@@ -121,16 +121,29 @@ $course_stats = $course_result->fetch_assoc();
                 <input type="date" id="calendar" />
               </div>
               <div class="btn-toolbar mb-2 mb-md-0">
+
+              <?php if (isset($_GET['task_status']) && $_GET['task_status'] == 'added'): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>Success!</strong> The new assignment has been published to students.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+    <button type="button" class="btn btn-dark mb-4" data-bs-toggle="modal" data-bs-target="#addAssignmentModal">
+    <i class="bi bi-plus-circle me-2"></i> Create New Assignment
+    </button>
+    
+         
                 <button
                   type="button"
                   class="btn btn-sm btn-outline-secondary"
                   data-bs-toggle="modal"
                   data-bs-target="#gradeModal"
                 >
-                  <i class="bi bi-plus-circle me-1"></i>Add Manual Grade
+                <i class="bi bi-plus-circle me-1"></i>Add Manual Grade
                 </button>
               </div>
             </div>
+        
 
             <!-- Welcome Banner -->
             <div class="alert alert-primary welcome-banner mb-4">
@@ -139,6 +152,54 @@ $course_stats = $course_result->fetch_assoc();
                 Here's what's happening with your students today.
               </p>
             </div>
+
+
+            <div class="modal fade" id="addAssignmentModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">New Assignment</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="../includes/process_assignment.php" method="POST">
+        <div class="modal-body">
+          
+          <div class="mb-3">
+            <label class="form-label">Assignment Title</label>
+            <input type="text" name="title" class="form-control" placeholder="e.g. PHP CRUD Project" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Course</label>
+            <select class="form-select" name="course_id" required>
+              <option value="">Select Course</option>
+              <?php
+              // Fetch courses from your database
+              $course_query = "SELECT id, course_name FROM courses GROUP BY course_name";
+              $course_result = $conn->query($course_query);
+              while($row = $course_result->fetch_assoc()) {
+                  echo "<option value='{$row['id']}'>{$row['course_name']}</option>";
+              }
+              ?>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Due Date</label>
+            <input type="date" name="due_date" class="form-control" required>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" name="add_task" class="btn btn-primary">Save Assignment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+            
 
             <!-- Stats Cards -->
             <div class="row mb-4">
@@ -341,6 +402,40 @@ $course_stats = $course_result->fetch_assoc();
                 </div>
               </div>
             </div>
+
+            <div class="card shadow-sm mt-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Existing Assignments</h5>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Course</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $list_query = "SELECT a.*, c.course_name FROM assignments a 
+                               JOIN courses c ON a.course_id = c.id 
+                               ORDER BY a.due_date DESC";
+                $list_result = $conn->query($list_query);
+                while($row = $list_result->fetch_assoc()):
+                ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($row['title']); ?></td>
+                    <td><?php echo htmlspecialchars($row['course_name']); ?></td>
+                    <td><?php echo date('M d, Y', strtotime($row['due_date'])); ?></td>
+                    <td><span class="badge bg-secondary"><?php echo $row['status']; ?></span></td>
+                </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
 
             <!-- Student Progress Overview and Recent Activity -->
             <div class="row">
