@@ -1277,98 +1277,77 @@ Passionate educator with 5+ years of experience in web development and design.</
         </main>
       </div>
     </div>
+    
+<div class="modal fade" id="gradeModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Manual Grade</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="../includes/process_grade.php" method="POST">
+        <div class="modal-body">
+          
+          <div class="mb-3">
+            <label class="form-label">Student (Name & Batch)</label>
+            <select class="form-select" name="student_id" required>
+              <option value="">Select student</option>
+              <?php
+              $student_query = "SELECT id, username, batch FROM users WHERE role = 'student' ORDER BY batch ASC, username ASC";
+              $student_result = $conn->query($student_query);
+              while($student = $student_result->fetch_assoc()) {
+                  $batchInfo = !empty($student['batch']) ? " (" . $student['batch'] . ")" : " (No Batch)";
+                  echo "<option value='{$student['id']}'>" . htmlspecialchars($student['username']) . $batchInfo . "</option>";
+              }
+              ?>
+            </select>
+          </div>
 
-    <!-- Add Manual Grade Modal -->
-    <div class="modal fade" id="gradeModal" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Add Manual Grade</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
+          <div class="mb-3">
+            <label class="form-label">Specific Assignment</label>
+            <select class="form-select" name="assignment_id" required>
+              <option value="">Select the task being graded</option>
+              <?php
+              $assign_query = "SELECT id, title FROM assignments ORDER BY title ASC";
+              $assign_result = $conn->query($assign_query);
+              while($assign = $assign_result->fetch_assoc()) {
+                  echo "<option value='{$assign['id']}'>" . htmlspecialchars($assign['title']) . "</option>";
+              }
+              ?>
+            </select>
           </div>
-          <div class="modal-body">
-            <form id="gradeForm">
-              <div class="mb-3">
-                <label for="studentName" class="form-label">Student Name</label>
-                <select class="form-select" id="studentName" required>
-                  <option value="">Select student</option>
-                  <option value="Sami">Sami (Batch 1)</option>
-                  <option value="Tsi">Tsi (Batch 1)</option>
-                  <option value="Miky">Miky (Batch 2)</option>
-                  <option value="Emma">Emma (Batch 2)</option>
-                  <option value="John">John (Batch 1)</option>
-                  <option value="Bety">Bety (Batch 2)</option>
-                  <option value="Lidiya">Lidiya (Batch 2)</option>
-                  <option value="Alex">Abel (Batch 1)</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="courseName" class="form-label">Course</label>
-                <select class="form-select" id="courseName" required>
-                  <option value="">Select course</option>
-                  <option value="GitHub Basics for Beginners">
-                    GitHub Basics
-                  </option>
-                  <option value="LinkedIn Essentials for Beginners">
-                    LinkedIn Essentials
-                  </option>
-                  <option value="Canva Design Basics for Beginners">
-                    Canva Design
-                  </option>
-                  <option value="Getting Started with Google Docs">
-                    Google Docs
-                  </option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="gradeValue" class="form-label">Grade (%)</label>
-                <input
-                  type="number"
-                  class="form-control"
-                  id="gradeValue"
-                  min="0"
-                  max="100"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label for="assessmentType" class="form-label"
-                  >Assessment Type</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="assessmentType"
-                  placeholder="e.g., Midterm Project, Quiz"
-                  required
-                />
-              </div>
-            </form>
+
+          <div class="mb-3">
+            <label class="form-label">Course Name</label>
+            <select class="form-select" name="course_name" required>
+              <option value="">Select course</option>
+              <option value="GitHub Basics for Beginners">GitHub Basics</option>
+              <option value="LinkedIn Essentials for Beginners">LinkedIn Essentials</option>
+              <option value="Canva Design Basics for Beginners">Canva Design</option>
+              <option value="Getting Started with Google Docs">Google Docs</option>
+              <option value="PHP Backend Development">PHP Backend</option>
+            </select>
           </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              onclick="submitGrade()"
-            >
-              Submit Grade
-            </button>
+
+          <div class="mb-3">
+            <label class="form-label">Grade (%)</label>
+            <input type="number" name="score" class="form-control" min="0" max="100" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Assessment Type</label>
+            <input type="text" name="assessment_type" class="form-control" placeholder="e.g. Quiz, Final Project" required>
           </div>
         </div>
-      </div>
-    </div>
 
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" name="submit_grade" class="btn btn-primary">Submit Grade</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
     <!-- Add Course Modal (New) -->
     <div class="modal fade" id="addCourseModal" tabindex="-1">
       <div class="modal-dialog">

@@ -2,7 +2,6 @@
 session_start();
 include('../includes/db_connection.php'); 
 
-// 1. Security Check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
     header("Location: ../Login Page 2.0/index.html");
     exit();
@@ -11,46 +10,34 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
 $user_id = $_SESSION['user_id'];
 $user_name = $_SESSION['username'];
 
-// Calculate Average Grade for the banner
-$grade_q = "SELECT AVG(score) as avg_score FROM grades WHERE user_id = $user_id";
-$grade_r = $conn->query($grade_q);
-$grade_row = $grade_r->fetch_assoc();
-$display_grade = $grade_row['avg_score'] ? round($grade_row['avg_score'], 1) : 0;
+// 1. Total Courses & In Progress
+$count_query = "SELECT 
+    COUNT(*) as total, 
+    SUM(CASE WHEN progress < 100 THEN 1 ELSE 0 END) as in_progress 
+    FROM courses WHERE user_id = $user_id";
+$count_result = $conn->query($count_query)->fetch_assoc();
+$total_courses = $count_result['total'] ?? 0;
+$in_progress = $count_result['in_progress'] ?? 0;
 
-// Set dynamic labels
-$grade_label = ($display_grade >= 75) ? "Great job!" : "Keep pushing!";
-$grade_color = ($display_grade >= 50) ? "text-success" : "text-danger";
-
-/*2. GRADE LOGIC
+// 2. Average Grade
 $grade_query = "SELECT AVG(score) as avg_score FROM grades WHERE user_id = $user_id";
-$grade_result = $conn->query($grade_query);
-$grade_row = $grade_result->fetch_assoc();
+$grade_result = $conn->query($grade_query)->fetch_assoc();
+$display_grade = $grade_result['avg_score'] ? round($grade_result['avg_score'], 1) : 0;
 
-$display_grade = $grade_row['avg_score'] ? round($grade_row['avg_score'], 1) : 0;
+if ($display_grade >= 90) { $grade_label = "Excellent"; $grade_color = "text-success"; }
+elseif ($display_grade >= 75) { $grade_label = "Good"; $grade_color = "text-primary"; }
+else { $grade_label = "Keep Improving"; $grade_color = "text-warning"; }
 
-$grade_label = "Keep it up!";
-$grade_color = "text-success";*/
+// 3. Pending Tasks (Now using the new assignment_id column)
+$task_query = "SELECT COUNT(*) as pending FROM assignments a 
+               LEFT JOIN grades g ON a.id = g.assignment_id AND g.user_id = $user_id 
+               WHERE g.id IS NULL";
 
-if ($display_grade < 50) {
-    $grade_label = "Needs improvement";
-    $grade_color = "text-danger";
-} elseif ($display_grade < 75) {
-    $grade_label = "Good progress";
-    $grade_color = "text-warning";
-} 
+$task_result = $conn->query($task_query);
+$pending_tasks = $task_result ? $task_result->fetch_assoc()['pending'] : 0;
 
-// 3. CREDIT LOGIC (MOVED OUTSIDE BRACKETS)
-// This must be outside the if/else so it runs for every student
-$total_courses_query = "SELECT COUNT(*) as count FROM courses WHERE user_id = $user_id";
-$total_result = $conn->query($total_courses_query);
-$total_row = $total_result->fetch_assoc();
-$credits_earned = $total_row['count'] * 4; 
-
-// 4. PENDING TASKS LOGIC
-$tasks_query = "SELECT COUNT(*) as pending_count FROM assignments WHERE status = 'pending' AND user_id = $user_id";
-$tasks_result = $conn->query($tasks_query);
-$tasks_row = $tasks_result->fetch_assoc();
-$pending_tasks = $tasks_row['pending_count'] ?? 0;
+// 4. Credits Earned
+$credits_earned = ($total_courses - $in_progress) * 3;
 ?>
 
 <!doctype html>

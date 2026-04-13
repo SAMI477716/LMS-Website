@@ -36,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($user['role'] === 'student') {
                 header("Location: ../student/index.php");
             } else {
-                header("Location: ../instructor/index.html");
+                header("Location: ../instructor/index.php");
             }
             exit();
         } else {
