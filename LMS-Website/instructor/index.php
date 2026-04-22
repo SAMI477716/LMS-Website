@@ -1,0 +1,1561 @@
+<?php
+require_once __DIR__ . '/../includes/session.php';
+enforce_session_timeout('../Login Page 2.0/index.html');
+include('../includes/db_connection.php'); 
+
+// 1. Security Check: If not logged in OR not an instructor, redirect to login
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'instructor') {
+    header("Location: ../Login Page 2.0/index.html");
+    exit();
+}
+
+// 2. Fetch Instructor Data
+$user_id = $_SESSION['user_id'];
+$instructor_name = $_SESSION['username'];
+
+// 3. (Optional) Fetch stats for the instructor's overview
+// For example: Count total courses this instructor has created
+$course_count_query = "SELECT COUNT(*) as total_courses FROM courses WHERE user_id = $user_id";
+$course_result = $conn->query($course_count_query);
+$course_stats = $course_result->fetch_assoc();
+?>
+
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LMS Dashboard - Instructor View</title>
+
+    <!-- Bootstrap 5 CSS CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icon -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Main Container -->
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Sidebar Navigation -->
+        <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar">
+          <div class="sidebar-wrapper">
+            <div class="text-center mb-4">
+              <h1 class="text-white mt-2">LMS</h1>
+            </div>
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link active" href="#" data-page="dashboard">
+                  <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-page="students">
+                  <i class="bi bi-people me-2"></i>Students
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-page="courses">
+                  <i class="bi bi-book me-2"></i>Courses
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-page="grades">
+                  <i class="bi bi-trophy me-2"></i>Grades
+                </a>
+              </li>
+              <li class="nav-item">
+  <a class="nav-link" href="#" data-page="reports">
+    <i class="bi bi-graph-up me-2"></i>Reports
+  </a>
+</li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-page="settings">
+                  <i class="bi bi-gear me-2"></i>Settings
+                </a>
+              </li>
+            </ul>
+
+            <!-- Instructor Profile Section (Bottom of Sidebar) -->
+            <div class="instructor-profile-sidebar">
+              <div class="d-flex align-items-center">
+                <img
+                  src="https://via.placeholder.com/50"
+                  alt="Profile"
+                  class="profile-thumbnail rounded-circle me-2"
+                />
+                <div class="profile-info">
+                  <h6 class="text-white mb-0"> Instructor</h6>
+                  <small class="text-secondary">instructor@lms.com</small>
+                  <p class="text-secondary small mb-0 mt-1">
+                    <i class="bi bi-chat-quote"></i> Passionate educator
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+          <!-- Dynamic Content Pages -->
+          <div id="dashboard-page" class="page active">
+            <!-- Dashboard Header -->
+            <div
+              class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+            >
+              <h1 class="h2">Instructor Dashboard</h1>
+              <div class="calendar-box">
+                <input type="date" id="calendar" />
+              </div>
+              <div class="btn-toolbar mb-2 mb-md-0 gap-2">
+
+              <?php if (isset($_GET['task_status']) && $_GET['task_status'] == 'added'): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>Success!</strong> The new assignment has been published to students.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+              <?php if (isset($_GET['task_status']) && $_GET['task_status'] === 'invalid'): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Could not save.</strong> Please choose a valid course, title, and due date.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+              <?php if (isset($_GET['grade_status']) && $_GET['grade_status'] === 'updated'): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>Success!</strong> The student's grade has been updated.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+              <?php if (isset($_GET['grade_status']) && $_GET['grade_status'] === 'limit_exceeded'): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Grade cannot exceed the 100% limit.</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+    <button type="button" class="btn btn-dark mb-4" data-bs-toggle="modal" data-bs-target="#addAssignmentModal">
+    <i class="bi bi-plus-circle me-2"></i> Create New Assignment
+    </button>
+    
+         
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-secondary ms-2"
+                  data-bs-toggle="modal"
+                  data-bs-target="#gradeModal"
+                >
+                <i class="bi bi-plus-circle me-1"></i>Add Manual Grade
+                </button>
+              </div>
+            </div>
+        
+
+            <!-- Welcome Banner -->
+            <div class="alert alert-primary welcome-banner mb-4">
+              <h4 class="alert-heading">Welcome back, Instructor!</h4>
+              <p class="mb-0">
+                Here's what's happening with your students today.
+              </p>
+            </div>
+
+
+            <div class="modal fade" id="addAssignmentModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">New Assignment</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="../includes/process_assignment.php" method="POST">
+        <div class="modal-body">
+          
+          <div class="mb-3">
+            <label class="form-label">Assignment Title</label>
+            <input type="text" name="title" class="form-control" placeholder="e.g. PHP CRUD Project" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Course</label>
+            <select class="form-select" name="course_id" required>
+              <option value="">Select Course</option>
+              <?php
+              // One canonical course row per name (MIN id) so new assignments always resolve
+              // to the same course_name for all students enrolled under that name.
+              $course_query = "SELECT MIN(id) AS id, course_name FROM courses GROUP BY course_name ORDER BY course_name ASC";
+              $course_result = $conn->query($course_query);
+              while($row = $course_result->fetch_assoc()) {
+                  echo "<option value='{$row['id']}'>{$row['course_name']}</option>";
+              }
+              ?>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Due Date</label>
+            <input type="date" name="due_date" class="form-control" required>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" name="add_task" class="btn btn-primary">Save Assignment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+            
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+              <div class="col-md-3">
+                <div class="card stat-card">
+                  <div class="card-body">
+                    <div
+                      class="d-flex justify-content-between align-items-center"
+                    >
+                      <div>
+                        <h6 class="card-subtitle text-muted">Total Students</h6>
+                        <h2 class="card-title mb-0">48</h2>
+                      </div>
+                      <div class="stat-icon bg-primary">
+                        <i class="bi bi-people-fill"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card stat-card">
+                  <div class="card-body">
+                    <div
+                      class="d-flex justify-content-between align-items-center"
+                    >
+                      <div>
+                        <h6 class="card-subtitle text-muted">Batch 1</h6>
+                        <h2 class="card-title mb-0">24 students</h2>
+                        <small class="text-success">78% Complete</small>
+                      </div>
+                      <div class="stat-icon bg-success">
+                        <i class="bi bi-person-workspace"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card stat-card">
+                  <div class="card-body">
+                    <div
+                      class="d-flex justify-content-between align-items-center"
+                    >
+                      <div>
+                        <h6 class="card-subtitle text-muted">Batch 2</h6>
+                        <h2 class="card-title mb-0">24 students</h2>
+                        <small class="text-warning">75% Complete</small>
+                      </div>
+                      <div class="stat-icon bg-warning">
+                        <i class="bi bi-person-workspace"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card stat-card">
+                  <div class="card-body">
+                    <div
+                      class="d-flex justify-content-between align-items-center"
+                    >
+                      <div>
+                        <h6 class="card-subtitle text-muted">Active Courses</h6>
+                        <h2 class="card-title mb-0">4</h2>
+                        <small class="text-danger">12 Pending Grades</small>
+                      </div>
+                      <div class="stat-icon bg-danger">
+                        <i class="bi bi-book-fill"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Course Progress Section -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header bg-white">
+                    <h5 class="mb-0">Course Completion Progress</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="course-item mb-3">
+                          <h6>GitHub Basics for Beginners</h6>
+                          <div class="row">
+                            <div class="col-6">
+                              <small>Batch 1</small>
+                              <div class="progress mb-2">
+                                <div
+                                  class="progress-bar bg-success"
+                                  style="width: 85%"
+                                >
+                                  85%
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-6">
+                              <small>Batch 2</small>
+                              <div class="progress mb-2">
+                                <div
+                                  class="progress-bar bg-info"
+                                  style="width: 78%"
+                                >
+                                  78%
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="course-item mb-3">
+                          <h6>LinkedIn Essentials for Beginners</h6>
+                          <div class="row">
+                            <div class="col-6">
+                              <small>Batch 1</small>
+                              <div class="progress mb-2">
+                                <div
+                                  class="progress-bar bg-success"
+                                  style="width: 72%"
+                                >
+                                  72%
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-6">
+                              <small>Batch 2</small>
+                              <div class="progress mb-2">
+                                <div
+                                  class="progress-bar bg-info"
+                                  style="width: 81%"
+                                >
+                                  81%
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="course-item mb-3">
+                          <h6>Canva Design Basics for Beginners</h6>
+                          <div class="row">
+                            <div class="col-6">
+                              <small>Batch 1</small>
+                              <div class="progress mb-2">
+                                <div
+                                  class="progress-bar bg-success"
+                                  style="width: 90%"
+                                >
+                                  90%
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-6">
+                              <small>Batch 2</small>
+                              <div class="progress mb-2">
+                                <div
+                                  class="progress-bar bg-info"
+                                  style="width: 75%"
+                                >
+                                  75%
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="course-item mb-3">
+                          <h6>Getting Started with Google Docs</h6>
+                          <div class="row">
+                            <div class="col-6">
+                              <small>Batch 1</small>
+                              <div class="progress mb-2">
+                                <div
+                                  class="progress-bar bg-success"
+                                  style="width: 68%"
+                                >
+                                  68%
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-6">
+                              <small>Batch 2</small>
+                              <div class="progress mb-2">
+                                <div
+                                  class="progress-bar bg-info"
+                                  style="width: 72%"
+                                >
+                                  72%
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card shadow-sm mt-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Existing Assignments</h5>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Course</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $list_query = "SELECT a.*, c.course_name FROM assignments a 
+                               JOIN courses c ON a.course_id = c.id 
+                               ORDER BY a.due_date DESC";
+                $list_result = $conn->query($list_query);
+                while($row = $list_result->fetch_assoc()):
+                ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($row['title']); ?></td>
+                    <td><?php echo htmlspecialchars($row['course_name']); ?></td>
+                    <td><?php echo date('M d, Y', strtotime($row['due_date'])); ?></td>
+                    <td><span class="badge bg-secondary"><?php echo $row['status']; ?></span></td>
+                </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+            <!-- Student Progress Overview and Recent Activity -->
+            <div class="row">
+              <div class="col-md-7">
+                <div class="card">
+                  <div class="card-header bg-white">
+                    <h5 class="mb-0">Student Progress Overview</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="student-progress-list">
+                      <div
+                        class="student-item mb-3 p-2 border-bottom"
+                        onclick="viewStudentDetails('ST001')"
+                      >
+                        <div
+                          class="d-flex justify-content-between align-items-center"
+                        >
+                          <div>
+                            <strong>Samuel</strong>
+                            <div class="text-muted small">Batch 1</div>
+                          </div>
+                          <div class="text-end">
+                            <span class="badge bg-success">85% (8)</span>
+                            <small class="text-muted d-block"
+                              >2 hours ago</small
+                            >
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="student-item mb-3 p-2 border-bottom"
+                        onclick="viewStudentDetails('ST002')"
+                      >
+                        <div
+                          class="d-flex justify-content-between align-items-center"
+                        >
+                          <div>
+                            <strong>Tsion</strong>
+                            <div class="text-muted small">Batch 1</div>
+                          </div>
+                          <div class="text-end">
+                            <span class="badge bg-success">92% (9)</span>
+                            <small class="text-muted d-block">1 day ago</small>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="student-item mb-3 p-2 border-bottom"
+                        onclick="viewStudentDetails('ST003')"
+                      >
+                        <div
+                          class="d-flex justify-content-between align-items-center"
+                        >
+                          <div>
+                            <strong>Mikyas</strong>
+                            <div class="text-muted small">Batch 2</div>
+                          </div>
+                          <div class="text-end">
+                            <span class="badge bg-warning">78% (7)</span>
+                            <small class="text-muted d-block">2 days ago</small>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="student-item mb-3 p-2 border-bottom"
+                        onclick="viewStudentDetails('ST004')"
+                      >
+                        <div
+                          class="d-flex justify-content-between align-items-center"
+                        >
+                          <div>
+                            <strong>Eldana</strong>
+                            <div class="text-muted small">Batch 2</div>
+                          </div>
+                          <div class="text-end">
+                            <span class="badge bg-success">88% (8)</span>
+                            <small class="text-muted d-block">1 day ago</small>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="student-item mb-3 p-2 border-bottom"
+                        onclick="viewStudentDetails('ST005')"
+                      >
+                        <div
+                          class="d-flex justify-content-between align-items-center"
+                        >
+                          <div>
+                            <strong>Yohannes</strong>
+                            <div class="text-muted small">Batch 1</div>
+                          </div>
+                          <div class="text-end">
+                            <span class="badge bg-danger">67% (6)</span>
+                            <small class="text-muted d-block"
+                              >3 weeks ago</small
+                            >
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="student-item p-2"
+                        onclick="viewStudentDetails('ST006')"
+                      >
+                        <div
+                          class="d-flex justify-content-between align-items-center"
+                        >
+                          <div>
+                            <strong>Biruk</strong>
+                            <div class="text-muted small">Batch 2</div>
+                          </div>
+                          <div class="text-end">
+                            <span class="badge bg-success">95% (10)</span>
+                            <small class="text-muted d-block"
+                              >30 mins ago</small
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-5">
+                <div class="card">
+                  <div class="card-header bg-white">
+                    <h5 class="mb-0">Recent Activity</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="activity-list">
+                      <div class="activity-item mb-3 pb-2 border-bottom">
+                        <div class="d-flex align-items-center">
+                          <div class="activity-icon bg-primary me-3">
+                            <i class="bi bi-file-text text-white"></i>
+                          </div>
+                          <div>
+                            <strong>New submission</strong>
+                            <div class="text-muted small">
+                              Tsion - Canva Design Assignment
+                            </div>
+                            <small class="text-secondary">2 hours ago</small>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="activity-item mb-3 pb-2 border-bottom">
+                        <div class="d-flex align-items-center">
+                          <div class="activity-icon bg-success me-3">
+                            <i class="bi bi-check-circle text-white"></i>
+                          </div>
+                          <div>
+                            <strong>Assessment completed</strong>
+                            <div class="text-muted small">
+                              Samuel - Google Form Quiz
+                            </div>
+                            <small class="text-secondary">5 hours ago</small>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="activity-item">
+                        <div class="d-flex align-items-center">
+                          <div class="activity-icon bg-warning me-3">
+                            <i class="bi bi-folder text-white"></i>
+                          </div>
+                          <div>
+                            <strong>Project submitted</strong>
+                            <div class="text-muted small">
+                              Lidiya - Graphics Project
+                            </div>
+                            <small class="text-secondary">1 day ago</small>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Student Details Page (initially hidden) -->
+          <div id="student-page" class="page">
+            <div
+              class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+            >
+              <h1 class="h2">Student Details</h1>
+              <button
+                class="btn btn-outline-secondary"
+                onclick="showPage('dashboard')"
+              >
+                <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+              </button>
+            </div>
+
+            <!-- Student Details Content -->
+            <div id="student-details-container">
+              <!-- Will be populated by JavaScript -->
+            </div>
+            <!-- Google Forms Assessments Section - FOR THIS STUDENT -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <i class="bi bi-google me-2"></i>Google Forms Assessments
+          </h5>
+          <button type="button" class="btn btn-sm btn-outline-primary" onclick="showAddGoogleFormForStudent()">
+            <i class="bi bi-plus-circle me-1"></i>Assign Form
+          </button>
+        </div>
+        <div class="card-body">
+          <div id="student-google-forms-list" class="row">
+            <!-- Student-specific Google Forms will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+          </div>
+
+          <!-- Students Dashboard Page -->
+          <div id="students-page" class="page">
+            <div
+              class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+            >
+              <h1 class="h2">Students Dashboard</h1>
+              <div class="btn-toolbar mb-2 mb-md-0">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  onclick="exportStudentList()"
+                >
+                  <i class="bi bi-download me-1"></i>Export List
+                </button>
+              </div>
+            </div>
+
+            <!-- Students by Batch -->
+            <div id="students-by-batch" class="row">
+              <!-- Will be populated by JavaScript -->
+            </div>
+          </div>
+
+          <!-- Courses Dashboard Page -->
+          <div id="courses-page" class="page">
+            <div
+              class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+            >
+              <h1 class="h2">Courses Dashboard</h1>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+                onclick="showAddCourseModal()"
+              >
+                <i class="bi bi-plus-circle me-1"></i>Add Course
+              </button>
+            </div>
+
+            <!-- Courses with Enrolled Students -->
+            <div id="courses-with-students" class="row">
+              <!-- Will be populated by JavaScript -->
+            </div>
+          </div>
+          <!-- Grades Dashboard Page -->
+          <div id="grades-page" class="page">
+            <div
+              class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+            >
+              <h1 class="h2">Grades Dashboard</h1>
+              <div class="btn-group">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-secondary"
+                  onclick="filterGradesByCourse('all')"
+                >
+                  All Courses
+                </button> 
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-secondary"
+                  onclick="filterGradesByCourse('github')"
+                >
+                  GitHub
+                </button>
+                
+
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-secondary"
+                  onclick="filterGradesByCourse('canva')"
+                >
+                  Canva
+                </button>
+              </div>
+            </div>
+
+            <!-- Rankings Table -->
+            <div class="card">
+              <div class="card-header bg-white">
+                <h5 class="mb-0">Student Performance Rankings</h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table
+                    class="table table-hover rankings-table"
+                    id="grades-ranking-table"
+                  >
+                    <thead>
+                      <tr>
+                        <th>Rank</th>
+                        <th>Student</th>
+                        <th>Course</th>
+                        <th>Grade</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="grades-table-body">
+                      <!-- Will be populated by JavaScript -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        <!-- Reports Dashboard Page -->
+<div id="reports-page" class="page">
+  <div
+    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+  >
+    <h1 class="h2">Reports & Analytics</h1>
+    <div class="btn-toolbar gap-2">
+      <button type="button" class="btn btn-sm btn-success" onclick="exportToCSV()">
+        <i class="bi bi-file-spreadsheet me-1"></i>Export CSV
+      </button>
+      <button type="button" class="btn btn-sm btn-danger" onclick="exportToPDF()">
+        <i class="bi bi-file-pdf me-1"></i>Export PDF
+      </button>
+      <button type="button" class="btn btn-sm btn-primary" onclick="printReport()">
+        <i class="bi bi-printer me-1"></i>Print
+      </button>
+    </div>
+  </div>
+
+  <!-- Report Filters -->
+  <div class="card mb-4">
+    <div class="card-header bg-white">
+      <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Report Filters</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-3 mb-3">
+          <label class="form-label">Report Type</label>
+          <select class="form-select" id="reportType" onchange="updateReportPreview()">
+            <option value="students">Student Report</option>
+            <option value="grades">Grade Report</option>
+            <option value="courses">Course Report</option>
+            <option value="performance">Performance Summary</option>
+          </select>
+        </div>
+        <div class="col-md-3 mb-3">
+          <label class="form-label">Batch</label>
+          <select class="form-select" id="reportBatch" onchange="updateReportPreview()">
+            <option value="all">All Batches</option>
+            <option value="Batch 1">Batch 1</option>
+            <option value="Batch 2">Batch 2</option>
+          </select>
+        </div>
+        <div class="col-md-3 mb-3">
+          <label class="form-label">Date Range</label>
+          <select class="form-select" id="reportDateRange" onchange="updateReportPreview()">
+            <option value="all">All Time</option>
+            <option value="week">Last 7 Days</option>
+            <option value="month">Last 30 Days</option>
+            <option value="semester">This Semester</option>
+          </select>
+        </div>
+        <div class="col-md-3 mb-3">
+          <label class="form-label">Sort By</label>
+          <select class="form-select" id="reportSort" onchange="updateReportPreview()">
+            <option value="name">Name (A-Z)</option>
+            <option value="grade">Grade (High to Low)</option>
+            <option value="date">Date (Newest)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Course Filter</label>
+          <select class="form-select" id="reportCourse" onchange="updateReportPreview()">
+            <option value="all">All Courses</option>
+            <option value="GitHub Basics for Beginners">GitHub Basics</option>
+            <option value="LinkedIn Essentials for Beginners">LinkedIn Essentials</option>
+            <option value="Canva Design Basics for Beginners">Canva Design</option>
+            <option value="Getting Started with Google Docs">Google Docs</option>
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Grade Range (Min)</label>
+          <input type="range" class="form-range" id="gradeMin" min="0" max="100" value="0" oninput="updateGradeMinValue(this.value)">
+          <span id="gradeMinValue" class="small">0%</span>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Grade Range (Max)</label>
+          <input type="range" class="form-range" id="gradeMax" min="0" max="100" value="100" oninput="updateGradeMaxValue(this.value)">
+          <span id="gradeMaxValue" class="small">100%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Preview -->
+  <div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>Report Preview</h5>
+      <div class="text-muted small" id="reportStats"></div>
+    </div>
+    <div class="card-body">
+      <div id="reportPreviewContainer" style="max-height: 500px; overflow-y: auto;">
+        <!-- Report content will be dynamically loaded here -->
+      </div>
+    </div>
+  </div>
+</div>
+          
+          <!-- Settings Dashboard Page -->
+          <div id="settings-page" class="page">
+            <div
+              class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+            >
+              <h1 class="h2">Settings</h1>
+            </div>
+
+            <!-- Settings Tabs -->
+            <ul class="nav nav-tabs mb-4" id="settingsTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link active"
+                  id="profile-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#profile"
+                  type="button"
+                  role="tab"
+                >
+                  Profile
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link"
+                  id="password-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#password"
+                  type="button"
+                  role="tab"
+                >
+                  Password
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link"
+                  id="courses-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#courses-settings"
+                  type="button"
+                  role="tab"
+                >
+                  Courses
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link"
+                  id="notifications-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#notifications"
+                  type="button"
+                  role="tab"
+                >
+                  Notifications
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link"
+                  id="layout-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#layout"
+                  type="button"
+                  role="tab"
+                >
+                  Layout
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link"
+                  id="appearance-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#appearance"
+                  type="button"
+                  role="tab"
+                >
+                  Appearance
+                </button>
+              </li>
+            </ul>
+
+            <!-- Settings Tab Content -->
+            <div class="tab-content" id="settingsTabContent">
+              <!-- Profile Settings -->
+              <div
+                class="tab-pane fade show active"
+                id="profile"
+                role="tabpanel"
+              >
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title mb-4">Profile Settings</h5>
+                    <form id="profileSettingsForm">
+                      <div class="row">
+                        <div class="col-md-3 text-center mb-4">
+                          <div class="profile-picture-upload">
+                            <img
+                              src="https://via.placeholder.com/150"
+                              alt="Profile"
+                              class="rounded-circle mb-3"
+                              id="profilePreview"
+                              style="
+                                width: 150px;
+                                height: 150px;
+                                object-fit: cover;
+                              "
+                            />
+                            <div>
+                              <label
+                                for="profilePicture"
+                                class="btn btn-outline-primary btn-sm"
+                              >
+                                <i class="bi bi-camera me-1"></i>Upload Photo
+                              </label>
+                              <input
+                                type="file"
+                                class="d-none"
+                                id="profilePicture"
+                                accept="image/*"
+                                onchange="previewProfilePicture(this)"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-9">
+                          <div class="mb-3">
+                            <label for="profileName" class="form-label"
+                              >Full Name</label
+                            >
+                            <input
+                              type="text"
+                              class="form-control"
+                              id="profileName"
+                              value="Instructor"
+                            />
+                          </div>
+                          <div class="mb-3">
+                            <label for="profileEmail" class="form-label"
+                              >Email Address</label
+                            >
+                            <input
+                              type="email"
+                              class="form-control"
+                              id="profileEmail"
+                              value="instructor@lms.com"
+                            />
+                          </div>
+                          <div class="mb-3">
+                            <label for="profileBio" class="form-label"
+                              >Short Bio</label
+                            >
+                            <textarea
+                              class="form-control"
+                              id="profileBio"
+                              rows="3"
+                            >
+Passionate educator with 5+ years of experience in web development and design.</textarea
+                            >
+                          </div>
+                          <button
+                            type="button"
+                            class="btn btn-primary"
+                            onclick="saveProfileSettings()"
+                          >
+                            Save Changes
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Password Settings -->
+              <div class="tab-pane fade" id="password" role="tabpanel">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title mb-4">Change Password</h5>
+                    <form id="passwordSettingsForm">
+                      <div class="mb-3">
+                        <label for="currentPassword" class="form-label"
+                          >Current Password</label
+                        >
+                        <input
+                          type="password"
+                          class="form-control"
+                          id="currentPassword"
+                          required
+                        />
+                      </div>
+                      <div class="mb-3">
+                        <label for="newPassword" class="form-label"
+                          >New Password</label
+                        >
+                        <input
+                          type="password"
+                          class="form-control"
+                          id="newPassword"
+                          required
+                        />
+                        <div class="password-strength mt-2">
+                          <div class="progress" style="height: 5px">
+                            <div
+                              class="progress-bar"
+                              id="passwordStrength"
+                              style="width: 0%"
+                            ></div>
+                          </div>
+                          <small class="text-muted" id="passwordStrengthText"
+                            >Enter a password</small
+                          >
+                        </div>
+                      </div>
+                      <div class="mb-3">
+                        <label for="confirmPassword" class="form-label"
+                          >Confirm New Password</label
+                        >
+                        <input
+                          type="password"
+                          class="form-control"
+                          id="confirmPassword"
+                          required
+                        />
+                        <div
+                          class="invalid-feedback"
+                          id="passwordMatchFeedback"
+                        >
+                          Passwords do not match
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        class="btn btn-primary"
+                        onclick="changePassword()"
+                      >
+                        Update Password
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Course Settings -->
+              <div class="tab-pane fade" id="courses-settings" role="tabpanel">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title mb-4">Course Settings</h5>
+
+                    <!-- Course Visibility -->
+                    <div class="mb-4">
+                      <h6>Default Course Visibility</h6>
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          name="courseVisibility"
+                          id="visibilityPublic"
+                          checked
+                        />
+                        <label class="form-check-label" for="visibilityPublic">
+                          <i class="bi bi-globe me-1"></i>Public - Anyone can
+                          view
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          name="courseVisibility"
+                          id="visibilityPrivate"
+                        />
+                        <label class="form-check-label" for="visibilityPrivate">
+                          <i class="bi bi-lock me-1"></i>Private - Only enrolled
+                          students
+                        </label>
+                      </div>
+                    </div>
+
+                    <!-- Enrollment Options -->
+                    <div class="mb-4">
+                      <h6>Default Enrollment Options</h6>
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          name="enrollmentOption"
+                          id="enrollmentOpen"
+                          checked
+                        />
+                        <label class="form-check-label" for="enrollmentOpen">
+                          <i class="bi bi-door-open me-1"></i>Open Enrollment -
+                          Anyone can join
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          name="enrollmentOption"
+                          id="enrollmentInvite"
+                        />
+                        <label class="form-check-label" for="enrollmentInvite">
+                          <i class="bi bi-envelope me-1"></i>Invite Only -
+                          Requires approval
+                        </label>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      onclick="saveCourseSettings()"
+                    >
+                      Save Settings
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Notification Settings -->
+              <div class="tab-pane fade" id="notifications" role="tabpanel">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title mb-4">Notification Preferences</h5>
+
+                    <div class="mb-4">
+                      <div class="form-check form-switch mb-3">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="emailSubmissions"
+                          checked
+                        />
+                        <label class="form-check-label" for="emailSubmissions">
+                          <strong
+                            >Email notifications for new submissions</strong
+                          >
+                          <p class="text-muted small mb-0">
+                            Get notified when students submit assignments
+                          </p>
+                        </label>
+                      </div>
+
+                      <div class="form-check form-switch mb-3">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="emailMessages"
+                          checked
+                        />
+                        <label class="form-check-label" for="emailMessages">
+                          <strong>Email notifications for new messages</strong>
+                          <p class="text-muted small mb-0">
+                            Get notified when you receive new messages
+                          </p>
+                        </label>
+                      </div>
+
+                      <div class="form-check form-switch mb-3">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="emailGrades"
+                        />
+                        <label class="form-check-label" for="emailGrades">
+                          <strong>Grade updates</strong>
+                          <p class="text-muted small mb-0">
+                            Get notified when grades are posted or updated
+                          </p>
+                        </label>
+                      </div>
+
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="emailAnnouncements"
+                          checked
+                        />
+                        <label
+                          class="form-check-label"
+                          for="emailAnnouncements"
+                        >
+                          <strong>Course announcements</strong>
+                          <p class="text-muted small mb-0">
+                            Receive important course announcements
+                          </p>
+                        </label>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      onclick="saveNotificationSettings()"
+                    >
+                      Save Preferences
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Layout Settings -->
+              <div class="tab-pane fade" id="layout" role="tabpanel">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title mb-4">Account</h5>
+
+                    <!-- Active Sessions -->
+                    <div class="mb-4">
+                      <h6>Active Sessions</h6>
+                      <div class="list-group">
+                        <div
+                          class="list-group-item d-flex justify-content-between align-items-center"
+                        >
+                          <div>
+                            <i class="bi bi-laptop me-2"></i>
+                            <strong>Current Session</strong>
+                            <br />
+                            <small class="text-muted"
+                              >Chrome on Windows • 192.168.1.100</small
+                            >
+                          </div>
+                          <span class="badge bg-success">Active Now</span>
+                        </div>
+                        <div
+                          class="list-group-item d-flex justify-content-between align-items-center"
+                        >
+                          <div>
+                            <i class="bi bi-phone me-2"></i>
+                            <strong>Mobile Device</strong>
+                            <br />
+                            <small class="text-muted"
+                              >Safari on iOS • 192.168.1.101</small
+                            >
+                          </div>
+                          <button class="btn btn-sm btn-outline-danger">
+                            Sign Out
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      onclick="saveLayoutSettings()"
+                    >
+                      Save Layout
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Appearance Settings -->
+              <div class="tab-pane fade" id="appearance" role="tabpanel">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title mb-4">Appearance</h5>
+
+                    <!-- Theme Options -->
+                    <div class="mb-4">
+                      <h6>Theme</h6>
+                      <div class="row">
+                        <div class="col-md-6 mb-3">
+                          <div
+                            class="theme-option card text-center p-3 selected"
+                            onclick="selectTheme('light')"
+                          >
+                            <i
+                              class="bi bi-brightness-high-fill fs-1 mb-2 text-warning"
+                            ></i>
+                            <h6>Light Mode</h6>
+                            <small class="text-muted"
+                              >Default light theme</small
+                            >
+                          </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                          <div
+                            class="theme-option card text-center p-3"
+                            onclick="selectTheme('dark')"
+                          >
+                            <i
+                              class="bi bi-moon-stars-fill fs-1 mb-2 text-primary"
+                            ></i>
+                            <h6>Dark Mode</h6>
+                            <small class="text-muted"
+                              >Easy on the eyes at night</small
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      onclick="saveAppearanceSettings()"
+                    >
+                      Apply Theme
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    
+<div class="modal fade" id="gradeModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Manual Grade</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="manualGradeForm" action="../includes/process_grade.php" method="POST">
+        <div class="modal-body">
+          
+          <div class="mb-3">
+            <label class="form-label">Student (Name & Batch)</label>
+            <select class="form-select" name="student_id" required>
+              <option value="">Select student</option>
+              <?php
+              $student_query = "SELECT id, username, batch FROM users WHERE role = 'student' ORDER BY batch ASC, username ASC";
+              $student_result = $conn->query($student_query);
+              while($student = $student_result->fetch_assoc()) {
+                  $batchInfo = !empty($student['batch']) ? " (" . $student['batch'] . ")" : " (No Batch)";
+                  echo "<option value='{$student['id']}'>" . htmlspecialchars($student['username']) . $batchInfo . "</option>";
+              }
+              ?>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Specific Assignment</label>
+            <select class="form-select" name="assignment_id" required>
+              <option value="">Select the task being graded</option>
+              <?php
+              $assign_query = "SELECT id, title FROM assignments ORDER BY title ASC";
+              $assign_result = $conn->query($assign_query);
+              while($assign = $assign_result->fetch_assoc()) {
+                  echo "<option value='{$assign['id']}'>" . htmlspecialchars($assign['title']) . "</option>";
+              }
+              ?>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Course Name</label>
+            <select class="form-select" name="course_name" required>
+              <option value="">Select course</option>
+              <option value="GitHub Basics for Beginners">GitHub Basics</option>
+              <option value="LinkedIn Essentials for Beginners">LinkedIn Essentials</option>
+              <option value="Canva Design Basics for Beginners">Canva Design</option>
+              <option value="Getting Started with Google Docs">Google Docs</option>
+              <option value="PHP Backend Development">PHP Backend</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Grade (%)</label>
+            <input type="number" id="manualGradeScore" name="score" class="form-control" min="0" max="100" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Assessment Type</label>
+            <input type="text" name="assessment_type" class="form-control" placeholder="e.g. Quiz, Final Project" required>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" name="submit_grade" class="btn btn-primary">Submit Grade</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+    <!-- Add Course Modal (New) -->
+    <div class="modal fade" id="addCourseModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add New Course</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="addCourseForm">
+              <div class="mb-3">
+                <label for="courseName" class="form-label">Course Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="courseName"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="courseCode" class="form-label">Course Code</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="courseCode"
+                  placeholder="e.g., CS101"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="courseDescription" class="form-label"
+                  >Description</label
+                >
+                <textarea
+                  class="form-control"
+                  id="courseDescription"
+                  rows="3"
+                ></textarea>
+              </div>
+              <div class="mb-3">
+                <label for="courseVisibility" class="form-label"
+                  >Visibility</label
+                >
+                <select class="form-select" id="courseVisibility">
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
+                </select>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="addNewCourse()"
+            >
+              Add Course
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      (function () {
+        const form = document.getElementById('manualGradeForm');
+        const scoreInput = document.getElementById('manualGradeScore');
+        if (!form || !scoreInput) return;
+
+        form.addEventListener('submit', function (event) {
+          const score = Number(scoreInput.value);
+          if (Number.isNaN(score) || score > 100) {
+            event.preventDefault();
+            alert('Grade cannot exceed the 100% limit.');
+            scoreInput.focus();
+          }
+        });
+      })();
+    </script>
+    <!-- Custom JS -->
+    <script src="script.js"></script>
+  </body>
+</html>
