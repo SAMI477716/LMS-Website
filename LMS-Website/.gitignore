@@ -1,0 +1,6 @@
+# Ignore everything
+*
+
+# But do not ignore these specific files/folders
+!README.md
+!LMS-Website/
