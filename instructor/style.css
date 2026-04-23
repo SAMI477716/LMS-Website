@@ -1,10 +1,10 @@
 :root {
-    --primary-color: #94a9ea;
-    --success-color: #94f5d1;
-    --info-color: #80e4f4;
-    --warning-color: #f5d992;
-    --danger-color: #ea7c72;
-    --sidebar-width: 280px;
+    --primary-color: #4e73df;
+    --success-color: #1cc88a;
+    --info-color: #36b9cc;
+    --warning-color: #f6c23e;
+    --danger-color: #e74a3b;
+    --sidebar-width: 300px;
 }
 
 /* Base Styles */
@@ -46,7 +46,7 @@ body {
     width: var(--sidebar-width);
     z-index: 100;
     padding: 0;
-    background: #131823;
+    background: linear-gradient(180deg, #1a1e2b 0%, #2c3e50 100%);
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -187,7 +187,7 @@ body {
 
 /* Welcome Banner */
 .welcome-banner {
-    background: rgb(31, 50, 69);
+    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
     color: white;
     border: none;
     border-radius: 15px;
@@ -325,7 +325,7 @@ body {
 
 /* Student Details Page */
 .student-profile-header {
-    background: rgb(10, 38, 60);
+    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
     color: white;
     padding: 40px;
     border-radius: 15px;
@@ -343,7 +343,7 @@ body {
     justify-content: center;
     font-size: 48px;
     font-weight: bold;
-    color: rgb(10, 38, 60);
+    color: var(--primary-color);
     border: 5px solid rgba(255, 255, 255, 0.3);
     margin-bottom: 20px;
 }
@@ -363,7 +363,7 @@ body {
 }
 
 .batch-header {
-    background: rgb(10, 38, 60);
+    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
     color: white;
     padding: 20px;
     border-bottom: none;
@@ -411,7 +411,7 @@ body {
 .student-avatar-small {
     width: 40px;
     height: 40px;
-    background: rgb(31, 50, 69);
+    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -446,7 +446,7 @@ body {
 }
 
 .course-header {
-    background: rgb(31, 50, 69);
+    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
     color: white;
     padding: 20px;
     border-radius: 15px 15px 0 0;
@@ -477,7 +477,7 @@ body {
 }
 
 .enrolled-students-list::-webkit-scrollbar-thumb {
-    background: rgb(31, 50, 69);
+    background: var(--primary-color);
     border-radius: 10px;
 }
 
@@ -528,7 +528,7 @@ body {
 }
 
 .rankings-table thead th {
-    background: rgb(31, 50, 69);
+    background: var(--primary-color);
     color: white;
     font-weight: 600;
     border: none;
@@ -614,13 +614,13 @@ body {
 }
 
 .settings-tabs .nav-link:hover {
-    border-color: rgb(31, 50, 69);
+    border-color: var(--primary-color);
     color: var(--primary-color);
 }
 
 .settings-tabs .nav-link.active {
-    color: rgb(31, 50, 69);
-    border-bottom: 2px solid rgb(31, 50, 69);
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
     background: transparent;
 }
 
@@ -1186,7 +1186,7 @@ body.dark-mode .student-item:hover .badge {
 }
 
 .report-table th {
-    background: rgb(31, 50, 69);
+    background: var(--primary-color);
     color: white;
     padding: 12px;
     text-align: left;
@@ -1228,7 +1228,7 @@ body.dark-mode .student-item:hover .badge {
 }
 
 .summary-card {
-    background: linear-gradient(135deg, rgb(31, 50, 69), #1a2a3a);
+    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
     color: white;
     padding: 15px;
     border-radius: 10px;
