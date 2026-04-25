@@ -1,0 +1,1299 @@
+:root {
+    --primary-color: #94a9ea;
+    --success-color: #94f5d1;
+    --info-color: #80e4f4;
+    --warning-color: #f5d992;
+    --danger-color: #ea7c72;
+    --sidebar-width: 280px;
+}
+
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #f8f9fc;
+}
+
+/* Main Container */
+.container-fluid {
+    height: 100vh;
+    padding: 0;
+    overflow: hidden;
+}
+
+.row {
+    height: 100%;
+    margin: 0;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    z-index: 100;
+    padding: 0;
+    background: #131823;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-wrapper {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    overflow-y: auto;
+}
+
+.sidebar .nav-link {
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s;
+}
+
+.sidebar .nav-link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    padding-left: 2rem;
+}
+
+.sidebar .nav-link.active {
+    color: white;
+    background: linear-gradient(90deg, var(--primary-color), transparent);
+    border-left: 4px solid var(--primary-color);
+}
+
+/* Instructor Avatar */
+.instructor-avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    margin: 0 auto 10px;
+}
+
+/* Instructor Profile Sidebar */
+.instructor-profile-sidebar {
+    margin-top: auto;
+    padding: 20px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s;
+}
+
+.instructor-profile-sidebar:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.profile-thumbnail {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border: 2px solid var(--primary-color);
+}
+
+.profile-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.profile-info h6 {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.profile-info p {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0;
+}
+
+/* Main Content Area */
+.main-content {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    height: 100vh;
+    overflow-y: auto;
+    padding: 20px 30px !important;
+    background: #f8f9fc;
+}
+
+/* Custom Scrollbar for Main Content */
+.main-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.main-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.main-content::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 10px;
+}
+
+.main-content::-webkit-scrollbar-thumb:hover {
+    background: #224abe;
+}
+
+/* Page Transitions */
+.page {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.page.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Welcome Banner */
+.welcome-banner {
+    background: rgb(31, 50, 69);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    padding: 25px;
+}
+
+.welcome-banner .alert-heading {
+    color: white;
+    font-weight: 600;
+}
+
+/* Stat Cards */
+.stat-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    transition: transform 0.3s;
+    overflow: hidden;
+    height: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+}
+
+.stat-icon.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), #224abe) !important;
+}
+
+.stat-icon.bg-success {
+    background: linear-gradient(135deg, var(--success-color), #17a673) !important;
+}
+
+.stat-icon.bg-warning {
+    background: linear-gradient(135deg, var(--warning-color), #f4b619) !important;
+}
+
+.stat-icon.bg-danger {
+    background: linear-gradient(135deg, var(--danger-color), #d52a1a) !important;
+}
+
+/* Course Progress */
+.course-item {
+    background: #f8f9fc;
+    padding: 15px;
+    border-radius: 10px;
+    transition: background 0.3s;
+}
+
+.course-item:hover {
+    background: #ffffff;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.course-item h6 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.progress {
+    height: 20px;
+    border-radius: 10px;
+    background: #eaecf4;
+}
+
+.progress-bar {
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 20px;
+}
+
+/* Student Progress Items */
+.student-item {
+    background: white;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-left: 4px solid transparent;
+}
+
+.student-item:hover {
+    background: #f8f9fc;
+    border-left-color: black;
+    transform: translateX(5px);
+}
+
+.student-item .badge {
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 20px;
+}
+
+/* Activity Items */
+.activity-item {
+    transition: transform 0.3s;
+}
+
+.activity-item:hover {
+    transform: translateX(5px);
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activity-icon.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), #4b78ff) !important;
+}
+
+.activity-icon.bg-success {
+    background: linear-gradient(135deg, var(--success-color), #4affc0) !important;
+}
+
+.activity-icon.bg-warning {
+    background: linear-gradient(135deg, var(--warning-color), #fbc337) !important;
+}
+
+/* Student Details Page */
+.student-profile-header {
+    background: rgb(10, 38, 60);
+    color: white;
+    padding: 40px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.student-avatar-large {
+    width: 120px;
+    height: 120px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: bold;
+    color: rgb(10, 38, 60);
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    margin-bottom: 20px;
+}
+
+/* Students Dashboard */
+.batch-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    transition: transform 0.3s;
+    overflow: hidden;
+    margin-bottom: 25px;
+}
+
+.batch-card:hover {
+    transform: translateY(-5px);
+}
+
+.batch-header {
+    background: rgb(10, 38, 60);
+    color: white;
+    padding: 20px;
+    border-bottom: none;
+}
+
+.batch-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.batch-stats {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.batch-stats span {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.student-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.student-list-item {
+    padding: 12px 20px;
+    border-bottom: 1px solid #e3e6f0;
+    transition: background 0.3s;
+    cursor: pointer;
+}
+
+.student-list-item:hover {
+    background: #f8f9fc;
+}
+
+.student-list-item:last-child {
+    border-bottom: none;
+}
+
+.student-avatar-small {
+    width: 40px;
+    height: 40px;
+    background: rgb(31, 50, 69);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    margin-right: 12px;
+}
+
+.student-info h6 {
+    margin: 0;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.student-info small {
+    color: #858796;
+}
+
+/* Courses Dashboard */
+.course-enrollment-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    transition: all 0.3s;
+    height: 100%;
+}
+
+.course-enrollment-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
+}
+
+.course-header {
+    background: rgb(31, 50, 69);
+    color: white;
+    padding: 20px;
+    border-radius: 15px 15px 0 0;
+}
+
+.course-code {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+.enrolled-students-list {
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.enrolled-students-list::-webkit-scrollbar {
+    width: 5px;
+}
+
+.enrolled-students-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.enrolled-students-list::-webkit-scrollbar-thumb {
+    background: rgb(31, 50, 69);
+    border-radius: 10px;
+}
+
+.enrolled-student-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 10px;
+    transition: background 0.3s;
+    cursor: pointer;
+}
+
+.enrolled-student-item:hover {
+    background: #f8f9fc;
+}
+
+.student-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.student-indicator.online {
+    background: #1acd8c;
+    box-shadow: 0 0 0 2px rgba(28, 200, 138, 0.2);
+}
+
+.student-indicator.offline {
+    background: #858796;
+}
+
+.enrollment-badge {
+    background: #e3e6f0;
+    color: #020306;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 20px;
+    margin-top: 10px;
+    display: inline-block;
+}
+
+/* Grades Dashboard */
+.rankings-table {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.rankings-table thead th {
+    background: rgb(31, 50, 69);
+    color: white;
+    font-weight: 600;
+    border: none;
+    padding: 15px;
+}
+
+.rankings-table tbody tr {
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.rankings-table tbody tr:hover {
+    background: #f8f9fc;
+    transform: scale(1.01);
+}
+
+.rank-badge {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.rank-1 {
+    background: linear-gradient(135deg, #f6c23e, #f4b619);
+    color: white;
+    box-shadow: 0 0 0 3px rgba(246, 194, 62, 0.3);
+}
+
+.rank-2 {
+    background: linear-gradient(135deg, #858796, #6c757d);
+    color: white;
+    box-shadow: 0 0 0 3px rgba(133, 135, 150, 0.3);
+}
+
+.rank-3 {
+    background: linear-gradient(135deg, #cd7f32, #b96f2a);
+    color: white;
+    box-shadow: 0 0 0 3px rgba(205, 127, 50, 0.3);
+}
+
+.grade-badge {
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.grade-a {
+    background: #d4edda;
+    color: #155724;
+}
+
+.grade-b {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.grade-c {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.grade-d {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Settings Page Styles */
+.settings-tabs {
+    border-bottom: 2px solid #e3e6f0;
+}
+
+.settings-tabs .nav-link {
+    color: #858796;
+    font-weight: 600;
+    padding: 12px 20px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+}
+
+.settings-tabs .nav-link:hover {
+    border-color: rgb(31, 50, 69);
+    color: var(--primary-color);
+}
+
+.settings-tabs .nav-link.active {
+    color: rgb(31, 50, 69);
+    border-bottom: 2px solid rgb(31, 50, 69);
+    background: transparent;
+}
+
+.profile-picture-upload {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-picture-upload:hover .upload-overlay {
+    opacity: 1;
+}
+
+.password-strength {
+    transition: all 0.3s;
+}
+
+.password-strength .progress-bar {
+    transition: width 0.3s;
+}
+
+.layout-option,
+.theme-option {
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.layout-option:hover,
+.theme-option:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.layout-option.selected,
+.theme-option.selected {
+    border-color: var(--primary-color);
+    background: rgba(78, 115, 223, 0.05);
+}
+
+/* Toast Notifications */
+.toast-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: white;
+    color: #333;
+    padding: 12px 24px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    transform: translateX(400px);
+    transition: transform 0.3s;
+    display: flex;
+    align-items: center;
+    border-left: 4px solid var(--primary-color);
+}
+
+.toast-notification.show {
+    transform: translateX(0);
+}
+
+.toast-notification.toast-success {
+    border-left-color: #1cc88a;
+}
+
+.toast-notification.toast-error {
+    border-left-color: #e74a3b;
+}
+
+.toast-notification.toast-warning {
+    border-left-color: #f6c23e;
+}
+
+.toast-notification i {
+    font-size: 20px;
+}
+
+.toast-notification.toast-success i {
+    color: #1cc88a;
+}
+
+.toast-notification.toast-error i {
+    color: #e74a3b;
+}
+
+.toast-notification.toast-warning i {
+    color: #f6c23e;
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background-color: #0a0e17;
+    color: #e9ecef;
+}
+
+/* Main background and content area */
+body.dark-mode .main-content {
+    background-color: #0a0e17;
+}
+
+/* Cards - Clean dark surface */
+body.dark-mode .card {
+    background-color: #131823;
+    border-color: #2a313c;
+    box-shadow: 0 0.15rem 1rem 0 rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .card-header {
+    background-color: #0f1419 !important;
+    border-bottom-color: #2a313c;
+    color: #e9ecef;
+}
+
+body.dark-mode .card-body {
+    background-color: #131823;
+}
+
+/* Text colors */
+body.dark-mode .text-muted {
+    color: #fcfcfc !important;
+}
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6 {
+    color: #f1f3f5;
+}
+
+body.dark-mode .text-dark {
+    color: #e9ecef !important;
+}
+
+/* Background utilities override */
+body.dark-mode .bg-white {
+    background-color: #131823 !important;
+}
+
+body.dark-mode .bg-light {
+    background-color: #0f1419 !important;
+}
+
+/* Student and course items */
+body.dark-mode .student-item {
+    background: #131823;
+    border-bottom: 1px solid #2a313c;
+}
+
+body.dark-mode .student-item:hover {
+    background: #1a222d;
+    border-left-color: #ffffff;
+}
+
+body.dark-mode .course-item {
+    background: #2e3543;
+}
+
+body.dark-mode .course-item:hover {
+    background: #1a222d;
+    box-shadow: 0 0.15rem 1rem 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Table styles */
+body.dark-mode .table {
+    color: #414244;
+}
+
+body.dark-mode .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+body.dark-mode .table-hover tbody tr:hover {
+    background-color: rgba(77, 124, 255, 0.08);
+    color: #e9ecef;
+}
+
+body.dark-mode .table-bordered {
+    border-color: #2a313c;
+}
+
+body.dark-mode .table-bordered th,
+body.dark-mode .table-bordered td {
+    border-color: #2a313c;
+}
+
+/* Grading badges - adjusted for dark mode */
+body.dark-mode .grade-a {
+    background: #0d3b1f;
+    color: #7df9a2;
+}
+
+body.dark-mode .grade-b {
+    background: #0a3a44;
+    color: #7de6f9;
+}
+
+body.dark-mode .grade-c {
+    background: #4a3a0a;
+    color: #f9e67d;
+}
+
+body.dark-mode .grade-d {
+    background: #4a1a1a;
+    color: #f9a27d;
+}
+
+/* Batch cards */
+body.dark-mode .batch-card {
+    background-color: #131823;
+    border-color: #2a313c;
+}
+
+body.dark-mode .batch-header {
+    background: #0f1419 !important;
+    border-bottom: 1px solid #2a313c;
+}
+
+body.dark-mode .student-list-item {
+    border-bottom-color: #2a313c;
+}
+
+body.dark-mode .student-list-item:hover {
+    background: #1a222d;
+}
+
+/* Stats cards */
+body.dark-mode .stat-card {
+    background-color: #131823;
+}
+
+/* Settings page styles */
+body.dark-mode .settings-tabs {
+    border-bottom-color: #22272f;
+}
+
+body.dark-mode .settings-tabs .nav-link {
+    color: #8c99a6;
+}
+
+body.dark-mode .settings-tabs .nav-link.active {
+    color: #7ba0ff;
+    border-bottom-color: #7ba0ff;
+}
+
+body.dark-mode .settings-tabs .nav-link:hover {
+    color: #7ba0ff;
+}
+
+/* Forms and inputs */
+body.dark-mode .form-control {
+    background-color: #0f1419;
+    border-color: #2a313c;
+    color: #e9ecef;
+}
+
+body.dark-mode .form-control:focus {
+    background-color: #0f1419;
+    border-color: #4d7cff;
+    color: #e9ecef;
+}
+
+body.dark-mode .form-control::placeholder {
+    color: #6c7a8a;
+}
+
+body.dark-mode .input-group-text {
+    background-color: #1a222d;
+    border-color: #2a313c;
+    color: #e9ecef;
+}
+
+/* Dropdown menus */
+body.dark-mode .dropdown-menu {
+    background-color: #131823;
+    border-color: #2a313c;
+}
+
+body.dark-mode .dropdown-item {
+    color: #e9ecef;
+}
+
+body.dark-mode .dropdown-item:hover {
+    background-color: #1a222d;
+    color: #fff;
+}
+
+/* Modals */
+body.dark-mode .modal-content {
+    background-color: #131823;
+    border-color: #2a313c;
+}
+
+body.dark-mode .modal-header {
+    border-bottom-color: #2a313c;
+}
+
+body.dark-mode .modal-footer {
+    border-top-color: #2a313c;
+}
+
+/* Progress bars */
+body.dark-mode .progress {
+    background-color: #2a313c;
+}
+
+/* Activity items */
+body.dark-mode .activity-item {
+    background: #131823;
+}
+
+body.dark-mode .activity-item:hover {
+    background: #1a222d;
+}
+
+/* Toast notifications in dark mode */
+body.dark-mode .toast-notification {
+    background: #131823;
+    color: #e9ecef;
+    border-left-color: #4d7cff;
+}
+
+/* Border utilities */
+body.dark-mode .border {
+    border-color: #2a313c !important;
+}
+
+body.dark-mode .border-bottom {
+    border-bottom-color: #2a313c !important;
+}
+
+body.dark-mode .border-top {
+    border-top-color: #2a313c !important;
+}
+
+/* Student profile header - adjusted for dark mode */
+body.dark-mode .student-profile-header {
+    background: #0f1419;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .student-avatar-large {
+    background: #1a222d;
+    color: #7ba0ff;
+    border-color: #2a313c;
+}
+
+/* Rankings table */
+body.dark-mode .rankings-table thead th {
+    background: #0f1419;
+    color: #e9ecef;
+}
+
+body.dark-mode .rankings-table tbody tr:hover {
+    background: #1a222d;
+}
+
+/* Badge adjustments */
+body.dark-mode .badge.bg-secondary {
+    background-color: #2a313c !important;
+}
+
+/* Enrollment badge */
+body.dark-mode .enrollment-badge {
+    background: #1a222d;
+    color: #e9ecef;
+}
+
+/* Calendar input */
+body.dark-mode #calendar {
+    background-color: #0f1419;
+    border-color: #2a313c;
+    color: #e9ecef;
+}
+
+body.dark-mode #calendar:focus {
+    border-color: #4d7cff;
+    outline: none;
+}
+
+/* Layout options hover in dark mode */
+body.dark-mode .layout-option:hover,
+body.dark-mode .theme-option:hover {
+    background: #1a222d;
+}
+
+body.dark-mode .layout-option.selected,
+body.dark-mode .theme-option.selected {
+    border-color: #4d7cff;
+    background: rgba(77, 124, 255, 0.1);
+}
+
+/* Scrollbar for dark mode */
+body.dark-mode .main-content::-webkit-scrollbar-track {
+    background: #0f1419;
+}
+
+body.dark-mode .main-content::-webkit-scrollbar-thumb {
+    background: #2a313c;
+}
+
+body.dark-mode .main-content::-webkit-scrollbar-thumb:hover {
+    background: #4d7cff;
+}
+
+/* List groups */
+body.dark-mode .list-group-item {
+    background-color: #131823;
+    border-color: #2a313c;
+    color: #e9ecef;
+}
+
+/* Ensure sidebar stays dark but distinct */
+body.dark-mode .sidebar {
+    background: linear-gradient(180deg, #0a0e17 0%, #0f1419 100%);
+}
+
+/* Fix any remaining white backgrounds */
+body.dark-mode [class*="bg-"]:not(.bg-primary):not(.bg-success):not(.bg-warning):not(.bg-danger):not(.bg-info):not(.bg-transparent) {
+    background-color: initial;
+}
+
+/* Keep primary colored backgrounds intact but adjust text */
+body.dark-mode .bg-primary,
+body.dark-mode .bg-success,
+body.dark-mode .bg-warning,
+body.dark-mode .bg-danger,
+body.dark-mode .bg-info {
+    color: #fff;
+}
+
+/* Force fix for white backgrounds - Add this to the end of your dark mode section */
+body.dark-mode .table,
+body.dark-mode .card,
+body.dark-mode .bg-white {
+    background-color: #131823 !important;
+    color: #e9ecef !important;
+}
+
+body.dark-mode .table td,
+body.dark-mode .table th {
+    background-color: #131823 !important;
+    color: #e9ecef !important;
+    border-color: #2a313c !important;
+}
+
+body.dark-mode .table thead th {
+    background-color: #0f1419 !important;
+}
+
+/* Fix hover text visibility on dark mode */
+body.dark-mode .student-list-item:hover,
+body.dark-mode .enrolled-student-item:hover,
+body.dark-mode .student-item:hover {
+    color: #000000 !important;
+}
+
+body.dark-mode .student-list-item:hover h6,
+body.dark-mode .student-list-item:hover small,
+body.dark-mode .enrolled-student-item:hover span,
+body.dark-mode .enrolled-student-item:hover small,
+body.dark-mode .student-item:hover h6,
+body.dark-mode .student-item:hover small {
+    color: #000000 !important;
+}
+
+/* Fix hover visibility for student progress items only */
+body.dark-mode .student-item:hover h6,
+body.dark-mode .student-item:hover small,
+body.dark-mode .student-item:hover .text-muted,
+body.dark-mode .student-item:hover .badge {
+    color: #969191 !important;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 767.98px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 15px !important;
+    }
+
+    .instructor-profile-sidebar {
+        margin-top: 20px;
+    }
+
+    .batch-header {
+        padding: 15px;
+    }
+
+    .student-list-item {
+        padding: 10px 15px;
+    }
+
+    .settings-tabs .nav-link {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+}
+
+/* Layout Variations */
+.layout-compact .card {
+    margin-bottom: 15px;
+}
+
+.layout-compact .student-item,
+.layout-compact .course-item {
+    padding: 10px !important;
+}
+
+.layout-spacious .card {
+    margin-bottom: 30px;
+}
+
+.layout-spacious .student-item,
+.layout-spacious .course-item {
+    padding: 20px !important;
+}
+
+
+.calendar-box {
+    margin-top: 10px;
+}
+
+#calendar {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    cursor: pointer;
+
+}
+
+/* Reports Page Styles */
+#reports-page .card {
+    transition: all 0.3s;
+}
+
+#reports-page .form-range {
+    cursor: pointer;
+}
+
+#reports-page .form-range:focus {
+    outline: none;
+}
+
+#reports-page .form-range::-webkit-slider-thumb {
+    background: var(--primary-color);
+}
+
+/* Report Preview Table Styles */
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.report-table th {
+    background: rgb(31, 50, 69);
+    color: white;
+    padding: 12px;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.report-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.report-table tr:hover {
+    background: #f8f9fc;
+}
+
+.report-table .grade-high {
+    color: #1cc88a;
+    font-weight: bold;
+}
+
+.report-table .grade-medium {
+    color: #f6c23e;
+    font-weight: bold;
+}
+
+.report-table .grade-low {
+    color: #e74a3b;
+    font-weight: bold;
+}
+
+/* Summary Cards */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.summary-card {
+    background: linear-gradient(135deg, rgb(31, 50, 69), #1a2a3a);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.summary-card h3 {
+    font-size: 28px;
+    margin: 10px 0;
+    color: white;
+}
+
+.summary-card i {
+    font-size: 32px;
+    opacity: 0.8;
+}
+
+/* Dark Mode Report Styles */
+body.dark-mode .report-table th {
+    background: #0f1419;
+    color: #e9ecef;
+}
+
+body.dark-mode .report-table td {
+    border-bottom-color: #2a313c;
+}
+
+body.dark-mode .report-table tr:hover {
+    background: #1a222d;
+}
+
+body.dark-mode .summary-card {
+    background: linear-gradient(135deg, #131823, #0f1419);
+}
+
+/* Print Styles */
+@media print {
+
+    .sidebar,
+    .btn-toolbar,
+    .card-header .btn,
+    .calendar-box,
+    .nav-tabs,
+    #reports-page .card-header .btn-group,
+    #reports-page .btn-toolbar {
+        display: none !important;
+    }
+
+    .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+
+    .report-table th {
+        background: #f0f0f0 !important;
+        color: black !important;
+    }
+
+    body.dark-mode .report-table th {
+        background: #ddd !important;
+        color: black !important;
+    }
+}

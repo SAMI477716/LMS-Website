@@ -1,0 +1,8 @@
+# Web development ignores
+node_modules/
+.env
+*.log
+
+# OS generated files
+Thumbs.db
+.DS_Store
