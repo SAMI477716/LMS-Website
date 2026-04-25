@@ -33,10 +33,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         // Updated INSERT statement to include 'batch'
         // Added a 5th '?' and 'batch' to the column list
-        $stmt = $conn->prepare("INSERT INTO users (username, email, password, role, batch) VALUES (?, ?, ?, ?, ?)");
-        
-        // Updated bind_param to "sssss" (5 strings)
-        $stmt->bind_param("sssss", $user, $email, $pass, $role, $batch);
+      $stmt = $conn->prepare("INSERT INTO users (username, email, password, role, batch) VALUES (?, ?, ?, ?, ?)");
+$stmt->bind_param("sssss", $user, $email, $pass, $role, $batch);
 
         if ($stmt->execute()) {
             echo "<script>alert('Registration Successful! Now You Can Login'); window.location.href='../Login Page 2.0/index.html';</script>";

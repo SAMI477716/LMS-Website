@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/session.php';
 enforce_session_timeout('../Login Page 2.0/index.html');
-include('../includes/db_connection.php'); 
+include('../includes/db_connection.php');
 
 // 1. Security Check: If not logged in OR not an instructor, redirect to login
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'instructor') {
@@ -10,16 +10,146 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'instructor') {
 }
 
 // 2. Fetch Instructor Data
-$user_id = $_SESSION['user_id'];
-$instructor_name = $_SESSION['username'];
+$user_id = (int) $_SESSION['user_id'];
+$instructor_name = (string) $_SESSION['username'];
 
-// 3. (Optional) Fetch stats for the instructor's overview
-// For example: Count total courses this instructor has created
-$course_count_query = "SELECT COUNT(*) as total_courses FROM courses WHERE user_id = $user_id";
-$course_result = $conn->query($course_count_query);
-$course_stats = $course_result->fetch_assoc();
+function fetch_all_rows(mysqli $conn, string $sql, string $types = '', array $params = []): array
+{
+    $rows = [];
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        return $rows;
+    }
+
+    if ($types !== '' && !empty($params)) {
+        $stmt->bind_param($types, ...$params);
+    }
+
+    if ($stmt->execute()) {
+        $result = $stmt->get_result();
+        if ($result instanceof mysqli_result) {
+            while ($row = $result->fetch_assoc()) {
+                $rows[] = $row;
+            }
+        }
+    }
+
+    $stmt->close();
+    return $rows;
+}
+
+function fetch_one_row(mysqli $conn, string $sql, string $types = '', array $params = []): array
+{
+    $rows = fetch_all_rows($conn, $sql, $types, $params);
+    return $rows[0] ?? [];
+}
+
+$profile = fetch_one_row(
+    $conn,
+    "SELECT username, email FROM users WHERE id = ? AND role = 'instructor' LIMIT 1",
+    'i',
+    [$user_id]
+);
+
+$instructor_email = (string) ($profile['email'] ?? 'instructor@lms.com');
+
+$students_row = fetch_one_row(
+    $conn,
+    "SELECT COUNT(*) AS total_students FROM users WHERE role = 'student'"
+);
+$total_students = (int) ($students_row['total_students'] ?? 0);
+
+$summary = fetch_one_row(
+    $conn,
+    "SELECT
+        COUNT(DISTINCT c.id) AS total_courses,
+        SUM(CASE WHEN c.status = 'active' THEN 1 ELSE 0 END) AS active_courses
+     FROM courses c
+     WHERE c.user_id = ?",
+    'i',
+    [$user_id]
+);
+
+$total_courses = (int) ($summary['total_courses'] ?? 0);
+$active_courses = (int) ($summary['active_courses'] ?? 0);
+
+$pending_grades_row = fetch_one_row(
+    $conn,
+    "SELECT COUNT(*) AS pending_grades
+     FROM assignments a
+     INNER JOIN courses c ON c.id = a.course_id
+     WHERE c.user_id = ? AND a.status <> 'graded'",
+    'i',
+    [$user_id]
+);
+$pending_grades = (int) ($pending_grades_row['pending_grades'] ?? 0);
+
+$courses = fetch_all_rows(
+    $conn,
+    "SELECT id, course_name, progress, status
+     FROM courses
+     WHERE user_id = ?
+     ORDER BY course_name ASC",
+    'i',
+    [$user_id]
+);
+
+$assignment_list = fetch_all_rows(
+    $conn,
+    "SELECT a.id, a.title, a.due_date, a.status, c.course_name
+     FROM assignments a
+     INNER JOIN courses c ON c.id = a.course_id
+     WHERE c.user_id = ?
+     ORDER BY a.due_date DESC",
+    'i',
+    [$user_id]
+);
+
+$all_students = fetch_all_rows(
+    $conn,
+    "SELECT id, username, batch FROM users WHERE role = 'student' ORDER BY batch ASC, username ASC"
+);
+
+$student_rows = fetch_all_rows(
+    $conn,
+    "SELECT u.id, u.username, u.batch,
+            COALESCE(ROUND(AVG(g.score), 0), 0) AS avg_score,
+            MAX(g.date_posted) AS last_activity
+     FROM users u
+     LEFT JOIN grades g ON g.user_id = u.id
+     WHERE u.role = 'student'
+     GROUP BY u.id, u.username, u.batch
+     ORDER BY avg_score DESC, u.username ASC
+     LIMIT 6"
+);
+
+$recent_activity = fetch_all_rows(
+    $conn,
+    "(SELECT
+        'submission' AS activity_type,
+        CONCAT(u.username, ' - ', a.title) AS activity_text,
+        g.date_posted AS activity_at
+      FROM grades g
+      INNER JOIN users u ON u.id = g.user_id
+      LEFT JOIN assignments a ON a.id = g.assignment_id
+      ORDER BY g.date_posted DESC
+      LIMIT 5)
+     UNION ALL
+     (SELECT
+        'assignment' AS activity_type,
+        CONCAT('Assignment created - ', a.title) AS activity_text,
+        CAST(a.due_date AS DATETIME) AS activity_at
+      FROM assignments a
+      INNER JOIN courses c ON c.id = a.course_id
+      WHERE c.user_id = ?
+      ORDER BY a.due_date DESC
+      LIMIT 5)
+     ORDER BY activity_at DESC
+     LIMIT 5",
+    'i',
+    [$user_id]
+);
 ?>
-
 
 <!doctype html>
 <html lang="en">
@@ -78,10 +208,10 @@ $course_stats = $course_result->fetch_assoc();
                 </a>
               </li>
               <li class="nav-item">
-  <a class="nav-link" href="#" data-page="reports">
-    <i class="bi bi-graph-up me-2"></i>Reports
-  </a>
-</li>
+                <a class="nav-link" href="#" data-page="reports">
+                  <i class="bi bi-graph-up me-2"></i>Reports
+                </a>
+              </li>
               <li class="nav-item">
                 <a class="nav-link" href="#" data-page="settings">
                   <i class="bi bi-gear me-2"></i>Settings
@@ -98,8 +228,8 @@ $course_stats = $course_result->fetch_assoc();
                   class="profile-thumbnail rounded-circle me-2"
                 />
                 <div class="profile-info">
-                  <h6 class="text-white mb-0"> Instructor</h6>
-                  <small class="text-secondary">instructor@lms.com</small>
+                  <h6 class="text-white mb-0"><?php echo htmlspecialchars($instructor_name); ?></h6>
+                  <small class="text-secondary"><?php echo htmlspecialchars($instructor_email); ?></small>
                   <p class="text-secondary small mb-0 mt-1">
                     <i class="bi bi-chat-quote"></i> Passionate educator
                   </p>
@@ -129,24 +259,6 @@ $course_stats = $course_result->fetch_assoc();
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 <?php endif; ?>
-              <?php if (isset($_GET['task_status']) && $_GET['task_status'] === 'invalid'): ?>
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <strong>Could not save.</strong> Please choose a valid course, title, and due date.
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-<?php endif; ?>
-              <?php if (isset($_GET['grade_status']) && $_GET['grade_status'] === 'updated'): ?>
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <strong>Success!</strong> The student's grade has been updated.
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-<?php endif; ?>
-              <?php if (isset($_GET['grade_status']) && $_GET['grade_status'] === 'limit_exceeded'): ?>
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <strong>Grade cannot exceed the 100% limit.</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-<?php endif; ?>
     <button type="button" class="btn btn-dark mb-4" data-bs-toggle="modal" data-bs-target="#addAssignmentModal">
     <i class="bi bi-plus-circle me-2"></i> Create New Assignment
     </button>
@@ -158,44 +270,40 @@ $course_stats = $course_result->fetch_assoc();
                   data-bs-toggle="modal"
                   data-bs-target="#gradeModal"
                 >
-                <i class="bi bi-plus-circle me-1"></i>Add Manual Grade
+                  <i class="bi bi-plus-circle me-1"></i>Add Manual Grade
                 </button>
               </div>
             </div>
-        
 
             <!-- Welcome Banner -->
             <div class="alert alert-primary welcome-banner mb-4">
-              <h4 class="alert-heading">Welcome back, Instructor!</h4>
+              <h4 class="alert-heading">Welcome back, <?php echo htmlspecialchars($instructor_name); ?>!</h4>
               <p class="mb-0">
                 Here's what's happening with your students today.
               </p>
             </div>
 
-
             <div class="modal fade" id="addAssignmentModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title">New Assignment</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <form action="../includes/process_assignment.php" method="POST">
-        <div class="modal-body">
-          
-          <div class="mb-3">
-            <label class="form-label">Assignment Title</label>
-            <input type="text" name="title" class="form-control" placeholder="e.g. PHP CRUD Project" required>
-          </div>
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">New Assignment</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                  </div>
+                  <form action="../includes/process_assignment.php" method="POST">
+                    <div class="modal-body">
+                      <div class="mb-3">
+                        <label class="form-label">Assignment Title</label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g. PHP CRUD Project" required>
+                      </div>
 
           <div class="mb-3">
             <label class="form-label">Course</label>
             <select class="form-select" name="course_id" required>
               <option value="">Select Course</option>
               <?php
-              // One canonical course row per name (MIN id) so new assignments always resolve
-              // to the same course_name for all students enrolled under that name.
-              $course_query = "SELECT MIN(id) AS id, course_name FROM courses GROUP BY course_name ORDER BY course_name ASC";
+              // Fetch courses from your database
+              $course_query = "SELECT id, course_name FROM courses GROUP BY course_name";
               $course_result = $conn->query($course_query);
               while($row = $course_result->fetch_assoc()) {
                   echo "<option value='{$row['id']}'>{$row['course_name']}</option>";
@@ -204,34 +312,29 @@ $course_stats = $course_result->fetch_assoc();
             </select>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label">Due Date</label>
-            <input type="date" name="due_date" class="form-control" required>
-          </div>
-
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="submit" name="add_task" class="btn btn-primary">Save Assignment</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-            
+                      <div class="mb-3">
+                        <label class="form-label">Due Date</label>
+                        <input type="date" name="due_date" class="form-control" required>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                      <button type="submit" name="add_task" class="btn btn-primary">Save Assignment</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
 
             <!-- Stats Cards -->
             <div class="row mb-4">
               <div class="col-md-3">
                 <div class="card stat-card">
                   <div class="card-body">
-                    <div
-                      class="d-flex justify-content-between align-items-center"
-                    >
+                    <div class="d-flex justify-content-between align-items-center">
                       <div>
                         <h6 class="card-subtitle text-muted">Total Students</h6>
-                        <h2 class="card-title mb-0">48</h2>
+                        <h2 class="card-title mb-0"><?php echo $total_students; ?></h2>
                       </div>
                       <div class="stat-icon bg-primary">
                         <i class="bi bi-people-fill"></i>
@@ -240,16 +343,15 @@ $course_stats = $course_result->fetch_assoc();
                   </div>
                 </div>
               </div>
+
               <div class="col-md-3">
                 <div class="card stat-card">
                   <div class="card-body">
-                    <div
-                      class="d-flex justify-content-between align-items-center"
-                    >
+                    <div class="d-flex justify-content-between align-items-center">
                       <div>
-                        <h6 class="card-subtitle text-muted">Batch 1</h6>
-                        <h2 class="card-title mb-0">24 students</h2>
-                        <small class="text-success">78% Complete</small>
+                        <h6 class="card-subtitle text-muted">My Courses</h6>
+                        <h2 class="card-title mb-0"><?php echo $total_courses; ?> courses</h2>
+                        <small class="text-success">Instructor-owned</small>
                       </div>
                       <div class="stat-icon bg-success">
                         <i class="bi bi-person-workspace"></i>
@@ -258,16 +360,15 @@ $course_stats = $course_result->fetch_assoc();
                   </div>
                 </div>
               </div>
+
               <div class="col-md-3">
                 <div class="card stat-card">
                   <div class="card-body">
-                    <div
-                      class="d-flex justify-content-between align-items-center"
-                    >
+                    <div class="d-flex justify-content-between align-items-center">
                       <div>
-                        <h6 class="card-subtitle text-muted">Batch 2</h6>
-                        <h2 class="card-title mb-0">24 students</h2>
-                        <small class="text-warning">75% Complete</small>
+                        <h6 class="card-subtitle text-muted">Published Courses</h6>
+                        <h2 class="card-title mb-0"><?php echo $active_courses; ?> active</h2>
+                        <small class="text-warning">Live in dashboard</small>
                       </div>
                       <div class="stat-icon bg-warning">
                         <i class="bi bi-person-workspace"></i>
@@ -276,16 +377,15 @@ $course_stats = $course_result->fetch_assoc();
                   </div>
                 </div>
               </div>
+
               <div class="col-md-3">
                 <div class="card stat-card">
                   <div class="card-body">
-                    <div
-                      class="d-flex justify-content-between align-items-center"
-                    >
+                    <div class="d-flex justify-content-between align-items-center">
                       <div>
                         <h6 class="card-subtitle text-muted">Active Courses</h6>
-                        <h2 class="card-title mb-0">4</h2>
-                        <small class="text-danger">12 Pending Grades</small>
+                        <h2 class="card-title mb-0"><?php echo $active_courses; ?></h2>
+                        <small class="text-danger"><?php echo $pending_grades; ?> Pending Grades</small>
                       </div>
                       <div class="stat-icon bg-danger">
                         <i class="bi bi-book-fill"></i>
@@ -305,118 +405,30 @@ $course_stats = $course_result->fetch_assoc();
                   </div>
                   <div class="card-body">
                     <div class="row">
-                      <div class="col-md-6">
-                        <div class="course-item mb-3">
-                          <h6>GitHub Basics for Beginners</h6>
-                          <div class="row">
-                            <div class="col-6">
-                              <small>Batch 1</small>
-                              <div class="progress mb-2">
-                                <div
-                                  class="progress-bar bg-success"
-                                  style="width: 85%"
-                                >
-                                  85%
-                                </div>
-                              </div>
-                            </div>
-                            <div class="col-6">
-                              <small>Batch 2</small>
-                              <div class="progress mb-2">
-                                <div
-                                  class="progress-bar bg-info"
-                                  style="width: 78%"
-                                >
-                                  78%
+                      <?php if (!empty($courses)): ?>
+                        <?php foreach ($courses as $course): ?>
+                          <?php $progress = max(0, min(100, (int) ($course['progress'] ?? 0))); ?>
+                          <div class="col-md-6">
+                            <div class="course-item mb-3">
+                              <h6><?php echo htmlspecialchars((string) $course['course_name']); ?></h6>
+                              <div class="row">
+                                <div class="col-12">
+                                  <small>Status: <?php echo htmlspecialchars((string) ($course['status'] ?? 'active')); ?></small>
+                                  <div class="progress mb-2">
+                                    <div class="progress-bar bg-success" style="width: <?php echo $progress; ?>%">
+                                      <?php echo $progress; ?>%
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
+                        <?php endforeach; ?>
+                      <?php else: ?>
+                        <div class="col-12">
+                          <div class="alert alert-light border mb-0">No courses found for this instructor yet.</div>
                         </div>
-                        <div class="course-item mb-3">
-                          <h6>LinkedIn Essentials for Beginners</h6>
-                          <div class="row">
-                            <div class="col-6">
-                              <small>Batch 1</small>
-                              <div class="progress mb-2">
-                                <div
-                                  class="progress-bar bg-success"
-                                  style="width: 72%"
-                                >
-                                  72%
-                                </div>
-                              </div>
-                            </div>
-                            <div class="col-6">
-                              <small>Batch 2</small>
-                              <div class="progress mb-2">
-                                <div
-                                  class="progress-bar bg-info"
-                                  style="width: 81%"
-                                >
-                                  81%
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-md-6">
-                        <div class="course-item mb-3">
-                          <h6>Canva Design Basics for Beginners</h6>
-                          <div class="row">
-                            <div class="col-6">
-                              <small>Batch 1</small>
-                              <div class="progress mb-2">
-                                <div
-                                  class="progress-bar bg-success"
-                                  style="width: 90%"
-                                >
-                                  90%
-                                </div>
-                              </div>
-                            </div>
-                            <div class="col-6">
-                              <small>Batch 2</small>
-                              <div class="progress mb-2">
-                                <div
-                                  class="progress-bar bg-info"
-                                  style="width: 75%"
-                                >
-                                  75%
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="course-item mb-3">
-                          <h6>Getting Started with Google Docs</h6>
-                          <div class="row">
-                            <div class="col-6">
-                              <small>Batch 1</small>
-                              <div class="progress mb-2">
-                                <div
-                                  class="progress-bar bg-success"
-                                  style="width: 68%"
-                                >
-                                  68%
-                                </div>
-                              </div>
-                            </div>
-                            <div class="col-6">
-                              <small>Batch 2</small>
-                              <div class="progress mb-2">
-                                <div
-                                  class="progress-bar bg-info"
-                                  style="width: 72%"
-                                >
-                                  72%
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      <?php endif; ?>
                     </div>
                   </div>
                 </div>
@@ -424,38 +436,32 @@ $course_stats = $course_result->fetch_assoc();
             </div>
 
             <div class="card shadow-sm mt-4">
-    <div class="card-header bg-white">
-        <h5 class="mb-0">Existing Assignments</h5>
-    </div>
-    <div class="card-body">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Course</th>
-                    <th>Due Date</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                $list_query = "SELECT a.*, c.course_name FROM assignments a 
-                               JOIN courses c ON a.course_id = c.id 
-                               ORDER BY a.due_date DESC";
-                $list_result = $conn->query($list_query);
-                while($row = $list_result->fetch_assoc()):
-                ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($row['title']); ?></td>
-                    <td><?php echo htmlspecialchars($row['course_name']); ?></td>
-                    <td><?php echo date('M d, Y', strtotime($row['due_date'])); ?></td>
-                    <td><span class="badge bg-secondary"><?php echo $row['status']; ?></span></td>
-                </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
-    </div>
-</div>
+              <div class="card-header bg-white">
+                <h5 class="mb-0">Existing Assignments</h5>
+              </div>
+              <div class="card-body">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Course</th>
+                      <th>Due Date</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach ($assignment_list as $row): ?>
+                    <tr>
+                      <td><?php echo htmlspecialchars($row['title']); ?></td>
+                      <td><?php echo htmlspecialchars($row['course_name']); ?></td>
+                      <td><?php echo date('M d, Y', strtotime($row['due_date'])); ?></td>
+                      <td><span class="badge bg-secondary"><?php echo htmlspecialchars($row['status']); ?></span></td>
+                    </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
             <!-- Student Progress Overview and Recent Activity -->
             <div class="row">
@@ -466,118 +472,40 @@ $course_stats = $course_result->fetch_assoc();
                   </div>
                   <div class="card-body">
                     <div class="student-progress-list">
-                      <div
-                        class="student-item mb-3 p-2 border-bottom"
-                        onclick="viewStudentDetails('ST001')"
-                      >
-                        <div
-                          class="d-flex justify-content-between align-items-center"
-                        >
-                          <div>
-                            <strong>Samuel</strong>
-                            <div class="text-muted small">Batch 1</div>
+                      <?php if (!empty($student_rows)): ?>
+                        <?php foreach ($student_rows as $student): ?>
+                          <?php
+                            $avg = (int) ($student['avg_score'] ?? 0);
+                            $badge = $avg >= 85 ? 'bg-success' : ($avg >= 70 ? 'bg-warning' : 'bg-danger');
+                            $lastSeen = !empty($student['last_activity']) ? date('M d, Y', strtotime((string) $student['last_activity'])) : 'No activity';
+                            $batch = !empty($student['batch']) ? (string) $student['batch'] : 'No Batch';
+                          ?>
+                          <div
+                            class="student-item mb-3 p-2 border-bottom"
+                            onclick="viewStudentDetails('ST<?php echo (int) $student['id']; ?>')"
+                          >
+                            <div class="d-flex justify-content-between align-items-center">
+                              <div>
+                                <strong><?php echo htmlspecialchars((string) $student['username']); ?></strong>
+                                <div class="text-muted small"><?php echo htmlspecialchars($batch); ?></div>
+                              </div>
+                              <div class="text-end">
+                                <span class="badge <?php echo $badge; ?>"><?php echo $avg; ?>%</span>
+                                <small class="text-muted d-block"><?php echo htmlspecialchars($lastSeen); ?></small>
+                              </div>
+                            </div>
                           </div>
-                          <div class="text-end">
-                            <span class="badge bg-success">85% (8)</span>
-                            <small class="text-muted d-block"
-                              >2 hours ago</small
-                            >
-                          </div>
+                        <?php endforeach; ?>
+                      <?php else: ?>
+                        <div class="student-item p-2">
+                          <div class="text-muted small">No student data available.</div>
                         </div>
-                      </div>
-                      <div
-                        class="student-item mb-3 p-2 border-bottom"
-                        onclick="viewStudentDetails('ST002')"
-                      >
-                        <div
-                          class="d-flex justify-content-between align-items-center"
-                        >
-                          <div>
-                            <strong>Tsion</strong>
-                            <div class="text-muted small">Batch 1</div>
-                          </div>
-                          <div class="text-end">
-                            <span class="badge bg-success">92% (9)</span>
-                            <small class="text-muted d-block">1 day ago</small>
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        class="student-item mb-3 p-2 border-bottom"
-                        onclick="viewStudentDetails('ST003')"
-                      >
-                        <div
-                          class="d-flex justify-content-between align-items-center"
-                        >
-                          <div>
-                            <strong>Mikyas</strong>
-                            <div class="text-muted small">Batch 2</div>
-                          </div>
-                          <div class="text-end">
-                            <span class="badge bg-warning">78% (7)</span>
-                            <small class="text-muted d-block">2 days ago</small>
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        class="student-item mb-3 p-2 border-bottom"
-                        onclick="viewStudentDetails('ST004')"
-                      >
-                        <div
-                          class="d-flex justify-content-between align-items-center"
-                        >
-                          <div>
-                            <strong>Eldana</strong>
-                            <div class="text-muted small">Batch 2</div>
-                          </div>
-                          <div class="text-end">
-                            <span class="badge bg-success">88% (8)</span>
-                            <small class="text-muted d-block">1 day ago</small>
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        class="student-item mb-3 p-2 border-bottom"
-                        onclick="viewStudentDetails('ST005')"
-                      >
-                        <div
-                          class="d-flex justify-content-between align-items-center"
-                        >
-                          <div>
-                            <strong>Yohannes</strong>
-                            <div class="text-muted small">Batch 1</div>
-                          </div>
-                          <div class="text-end">
-                            <span class="badge bg-danger">67% (6)</span>
-                            <small class="text-muted d-block"
-                              >3 weeks ago</small
-                            >
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        class="student-item p-2"
-                        onclick="viewStudentDetails('ST006')"
-                      >
-                        <div
-                          class="d-flex justify-content-between align-items-center"
-                        >
-                          <div>
-                            <strong>Biruk</strong>
-                            <div class="text-muted small">Batch 2</div>
-                          </div>
-                          <div class="text-end">
-                            <span class="badge bg-success">95% (10)</span>
-                            <small class="text-muted d-block"
-                              >30 mins ago</small
-                            >
-                          </div>
-                        </div>
-                      </div>
+                      <?php endif; ?>
                     </div>
                   </div>
                 </div>
               </div>
+
               <div class="col-md-5">
                 <div class="card">
                   <div class="card-header bg-white">
@@ -585,48 +513,44 @@ $course_stats = $course_result->fetch_assoc();
                   </div>
                   <div class="card-body">
                     <div class="activity-list">
-                      <div class="activity-item mb-3 pb-2 border-bottom">
-                        <div class="d-flex align-items-center">
-                          <div class="activity-icon bg-primary me-3">
-                            <i class="bi bi-file-text text-white"></i>
-                          </div>
-                          <div>
-                            <strong>New submission</strong>
-                            <div class="text-muted small">
-                              Tsion - Canva Design Assignment
+                      <?php if (!empty($recent_activity)): ?>
+                        <?php foreach ($recent_activity as $index => $activity): ?>
+                          <?php
+                            $isSubmission = ($activity['activity_type'] ?? '') === 'submission';
+                            $iconClass = $isSubmission ? 'bi-file-text' : 'bi-folder';
+                            $bgClass = $isSubmission ? 'bg-primary' : 'bg-warning';
+                            $title = $isSubmission ? 'New submission' : 'Assignment update';
+                            $activityAt = !empty($activity['activity_at']) ? date('M d, Y', strtotime((string) $activity['activity_at'])) : 'Just now';
+                            $borderClass = $index < (count($recent_activity) - 1) ? 'mb-3 pb-2 border-bottom' : '';
+                          ?>
+                          <div class="activity-item <?php echo $borderClass; ?>">
+                            <div class="d-flex align-items-center">
+                              <div class="activity-icon <?php echo $bgClass; ?> me-3">
+                                <i class="bi <?php echo $iconClass; ?> text-white"></i>
+                              </div>
+                              <div>
+                                <strong><?php echo $title; ?></strong>
+                                <div class="text-muted small">
+                                  <?php echo htmlspecialchars((string) ($activity['activity_text'] ?? 'No recent activity details')); ?>
+                                </div>
+                                <small class="text-secondary"><?php echo htmlspecialchars($activityAt); ?></small>
+                              </div>
                             </div>
-                            <small class="text-secondary">2 hours ago</small>
+                          </div>
+                        <?php endforeach; ?>
+                      <?php else: ?>
+                        <div class="activity-item">
+                          <div class="d-flex align-items-center">
+                            <div class="activity-icon bg-secondary me-3">
+                              <i class="bi bi-info-circle text-white"></i>
+                            </div>
+                            <div>
+                              <strong>No recent activity</strong>
+                              <div class="text-muted small">New grade posts and assignments will appear here.</div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div class="activity-item mb-3 pb-2 border-bottom">
-                        <div class="d-flex align-items-center">
-                          <div class="activity-icon bg-success me-3">
-                            <i class="bi bi-check-circle text-white"></i>
-                          </div>
-                          <div>
-                            <strong>Assessment completed</strong>
-                            <div class="text-muted small">
-                              Samuel - Google Form Quiz
-                            </div>
-                            <small class="text-secondary">5 hours ago</small>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="activity-item">
-                        <div class="d-flex align-items-center">
-                          <div class="activity-icon bg-warning me-3">
-                            <i class="bi bi-folder text-white"></i>
-                          </div>
-                          <div>
-                            <strong>Project submitted</strong>
-                            <div class="text-muted small">
-                              Lidiya - Graphics Project
-                            </div>
-                            <small class="text-secondary">1 day ago</small>
-                          </div>
-                        </div>
-                      </div>
+                      <?php endif; ?>
                     </div>
                   </div>
                 </div>
@@ -653,25 +577,25 @@ $course_stats = $course_result->fetch_assoc();
               <!-- Will be populated by JavaScript -->
             </div>
             <!-- Google Forms Assessments Section - FOR THIS STUDENT -->
-  <div class="row mt-4">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">
-            <i class="bi bi-google me-2"></i>Google Forms Assessments
-          </h5>
-          <button type="button" class="btn btn-sm btn-outline-primary" onclick="showAddGoogleFormForStudent()">
-            <i class="bi bi-plus-circle me-1"></i>Assign Form
-          </button>
-        </div>
-        <div class="card-body">
-          <div id="student-google-forms-list" class="row">
-            <!-- Student-specific Google Forms will be loaded here -->
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+            <div class="row mt-4">
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                      <i class="bi bi-google me-2"></i>Google Forms Assessments
+                    </h5>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="showAddGoogleFormForStudent()">
+                      <i class="bi bi-plus-circle me-1"></i>Assign Form
+                    </button>
+                  </div>
+                  <div class="card-body">
+                    <div id="student-google-forms-list" class="row">
+                      <!-- Student-specific Google Forms will be loaded here -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Students Dashboard Page -->
@@ -717,6 +641,7 @@ $course_stats = $course_result->fetch_assoc();
               <!-- Will be populated by JavaScript -->
             </div>
           </div>
+
           <!-- Grades Dashboard Page -->
           <div id="grades-page" class="page">
             <div
@@ -730,23 +655,16 @@ $course_stats = $course_result->fetch_assoc();
                   onclick="filterGradesByCourse('all')"
                 >
                   All Courses
-                </button> 
+                </button>
+                <?php foreach ($courses as $course): ?>
                 <button
                   type="button"
                   class="btn btn-sm btn-outline-secondary"
-                  onclick="filterGradesByCourse('github')"
+                  onclick="filterGradesByCourse('<?php echo strtolower(preg_replace('/[^a-z0-9]+/i', '-', (string) $course['course_name'])); ?>')"
                 >
-                  GitHub
+                  <?php echo htmlspecialchars((string) $course['course_name']); ?>
                 </button>
-                
-
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-secondary"
-                  onclick="filterGradesByCourse('canva')"
-                >
-                  Canva
-                </button>
+                <?php endforeach; ?>
               </div>
             </div>
 
@@ -779,106 +697,105 @@ $course_stats = $course_result->fetch_assoc();
             </div>
           </div>
 
-        <!-- Reports Dashboard Page -->
-<div id="reports-page" class="page">
-  <div
-    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
-  >
-    <h1 class="h2">Reports & Analytics</h1>
-    <div class="btn-toolbar gap-2">
-      <button type="button" class="btn btn-sm btn-success" onclick="exportToCSV()">
-        <i class="bi bi-file-spreadsheet me-1"></i>Export CSV
-      </button>
-      <button type="button" class="btn btn-sm btn-danger" onclick="exportToPDF()">
-        <i class="bi bi-file-pdf me-1"></i>Export PDF
-      </button>
-      <button type="button" class="btn btn-sm btn-primary" onclick="printReport()">
-        <i class="bi bi-printer me-1"></i>Print
-      </button>
-    </div>
-  </div>
+          <!-- Reports Dashboard Page -->
+          <div id="reports-page" class="page">
+            <div
+              class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+            >
+              <h1 class="h2">Reports & Analytics</h1>
+              <div class="btn-toolbar gap-2">
+                <button type="button" class="btn btn-sm btn-success" onclick="exportToCSV()">
+                  <i class="bi bi-file-spreadsheet me-1"></i>Export CSV
+                </button>
+                <button type="button" class="btn btn-sm btn-danger" onclick="exportToPDF()">
+                  <i class="bi bi-file-pdf me-1"></i>Export PDF
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" onclick="printReport()">
+                  <i class="bi bi-printer me-1"></i>Print
+                </button>
+              </div>
+            </div>
 
-  <!-- Report Filters -->
-  <div class="card mb-4">
-    <div class="card-header bg-white">
-      <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Report Filters</h5>
-    </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-3 mb-3">
-          <label class="form-label">Report Type</label>
-          <select class="form-select" id="reportType" onchange="updateReportPreview()">
-            <option value="students">Student Report</option>
-            <option value="grades">Grade Report</option>
-            <option value="courses">Course Report</option>
-            <option value="performance">Performance Summary</option>
-          </select>
-        </div>
-        <div class="col-md-3 mb-3">
-          <label class="form-label">Batch</label>
-          <select class="form-select" id="reportBatch" onchange="updateReportPreview()">
-            <option value="all">All Batches</option>
-            <option value="Batch 1">Batch 1</option>
-            <option value="Batch 2">Batch 2</option>
-          </select>
-        </div>
-        <div class="col-md-3 mb-3">
-          <label class="form-label">Date Range</label>
-          <select class="form-select" id="reportDateRange" onchange="updateReportPreview()">
-            <option value="all">All Time</option>
-            <option value="week">Last 7 Days</option>
-            <option value="month">Last 30 Days</option>
-            <option value="semester">This Semester</option>
-          </select>
-        </div>
-        <div class="col-md-3 mb-3">
-          <label class="form-label">Sort By</label>
-          <select class="form-select" id="reportSort" onchange="updateReportPreview()">
-            <option value="name">Name (A-Z)</option>
-            <option value="grade">Grade (High to Low)</option>
-            <option value="date">Date (Newest)</option>
-          </select>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-4 mb-3">
-          <label class="form-label">Course Filter</label>
-          <select class="form-select" id="reportCourse" onchange="updateReportPreview()">
-            <option value="all">All Courses</option>
-            <option value="GitHub Basics for Beginners">GitHub Basics</option>
-            <option value="LinkedIn Essentials for Beginners">LinkedIn Essentials</option>
-            <option value="Canva Design Basics for Beginners">Canva Design</option>
-            <option value="Getting Started with Google Docs">Google Docs</option>
-          </select>
-        </div>
-        <div class="col-md-4 mb-3">
-          <label class="form-label">Grade Range (Min)</label>
-          <input type="range" class="form-range" id="gradeMin" min="0" max="100" value="0" oninput="updateGradeMinValue(this.value)">
-          <span id="gradeMinValue" class="small">0%</span>
-        </div>
-        <div class="col-md-4 mb-3">
-          <label class="form-label">Grade Range (Max)</label>
-          <input type="range" class="form-range" id="gradeMax" min="0" max="100" value="100" oninput="updateGradeMaxValue(this.value)">
-          <span id="gradeMaxValue" class="small">100%</span>
-        </div>
-      </div>
-    </div>
-  </div>
+            <!-- Report Filters -->
+            <div class="card mb-4">
+              <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Report Filters</h5>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-3 mb-3">
+                    <label class="form-label">Report Type</label>
+                    <select class="form-select" id="reportType" onchange="updateReportPreview()">
+                      <option value="students">Student Report</option>
+                      <option value="grades">Grade Report</option>
+                      <option value="courses">Course Report</option>
+                      <option value="performance">Performance Summary</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <label class="form-label">Batch</label>
+                    <select class="form-select" id="reportBatch" onchange="updateReportPreview()">
+                      <option value="all">All Batches</option>
+                      <option value="Batch 1">Batch 1</option>
+                      <option value="Batch 2">Batch 2</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <label class="form-label">Date Range</label>
+                    <select class="form-select" id="reportDateRange" onchange="updateReportPreview()">
+                      <option value="all">All Time</option>
+                      <option value="week">Last 7 Days</option>
+                      <option value="month">Last 30 Days</option>
+                      <option value="semester">This Semester</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <label class="form-label">Sort By</label>
+                    <select class="form-select" id="reportSort" onchange="updateReportPreview()">
+                      <option value="name">Name (A-Z)</option>
+                      <option value="grade">Grade (High to Low)</option>
+                      <option value="date">Date (Newest)</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Course Filter</label>
+                    <select class="form-select" id="reportCourse" onchange="updateReportPreview()">
+                      <option value="all">All Courses</option>
+                      <?php foreach ($courses as $course): ?>
+                      <option value="<?php echo htmlspecialchars((string) $course['course_name']); ?>"><?php echo htmlspecialchars((string) $course['course_name']); ?></option>
+                      <?php endforeach; ?>
+                    </select>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Grade Range (Min)</label>
+                    <input type="range" class="form-range" id="gradeMin" min="0" max="100" value="0" oninput="updateGradeMinValue(this.value)">
+                    <span id="gradeMinValue" class="small">0%</span>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Grade Range (Max)</label>
+                    <input type="range" class="form-range" id="gradeMax" min="0" max="100" value="100" oninput="updateGradeMaxValue(this.value)">
+                    <span id="gradeMaxValue" class="small">100%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-  <!-- Report Preview -->
-  <div class="card">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-      <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>Report Preview</h5>
-      <div class="text-muted small" id="reportStats"></div>
-    </div>
-    <div class="card-body">
-      <div id="reportPreviewContainer" style="max-height: 500px; overflow-y: auto;">
-        <!-- Report content will be dynamically loaded here -->
-      </div>
-    </div>
-  </div>
-</div>
-          
+            <!-- Report Preview -->
+            <div class="card">
+              <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>Report Preview</h5>
+                <div class="text-muted small" id="reportStats"></div>
+              </div>
+              <div class="card-body">
+                <div id="reportPreviewContainer" style="max-height: 500px; overflow-y: auto;">
+                  <!-- Report content will be dynamically loaded here -->
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Settings Dashboard Page -->
           <div id="settings-page" class="page">
             <div
@@ -1015,7 +932,7 @@ $course_stats = $course_result->fetch_assoc();
                               type="text"
                               class="form-control"
                               id="profileName"
-                              value="Instructor"
+                              value="<?php echo htmlspecialchars($instructor_name); ?>"
                             />
                           </div>
                           <div class="mb-3">
@@ -1026,7 +943,7 @@ $course_stats = $course_result->fetch_assoc();
                               type="email"
                               class="form-control"
                               id="profileEmail"
-                              value="instructor@lms.com"
+                              value="<?php echo htmlspecialchars($instructor_email); ?>"
                             />
                           </div>
                           <div class="mb-3">
@@ -1037,9 +954,7 @@ $course_stats = $course_result->fetch_assoc();
                               class="form-control"
                               id="profileBio"
                               rows="3"
-                            >
-Passionate educator with 5+ years of experience in web development and design.</textarea
-                            >
+                            >Passionate educator with 5+ years of experience in web development and design.</textarea>
                           </div>
                           <button
                             type="button"
@@ -1400,7 +1315,7 @@ Passionate educator with 5+ years of experience in web development and design.</
         <h5 class="modal-title">Add Manual Grade</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form id="manualGradeForm" action="../includes/process_grade.php" method="POST">
+      <form action="../includes/process_grade.php" method="POST">
         <div class="modal-body">
           
           <div class="mb-3">
@@ -1418,51 +1333,46 @@ Passionate educator with 5+ years of experience in web development and design.</
             </select>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label">Specific Assignment</label>
-            <select class="form-select" name="assignment_id" required>
-              <option value="">Select the task being graded</option>
-              <?php
-              $assign_query = "SELECT id, title FROM assignments ORDER BY title ASC";
-              $assign_result = $conn->query($assign_query);
-              while($assign = $assign_result->fetch_assoc()) {
-                  echo "<option value='{$assign['id']}'>" . htmlspecialchars($assign['title']) . "</option>";
-              }
-              ?>
-            </select>
-          </div>
+              <div class="mb-3">
+                <label class="form-label">Specific Assignment</label>
+                <select class="form-select" name="assignment_id" required>
+                  <option value="">Select the task being graded</option>
+                  <?php foreach ($assignment_list as $assign): ?>
+                    <option value="<?php echo (int) $assign['id']; ?>"><?php echo htmlspecialchars((string) $assign['title']); ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
 
-          <div class="mb-3">
-            <label class="form-label">Course Name</label>
-            <select class="form-select" name="course_name" required>
-              <option value="">Select course</option>
-              <option value="GitHub Basics for Beginners">GitHub Basics</option>
-              <option value="LinkedIn Essentials for Beginners">LinkedIn Essentials</option>
-              <option value="Canva Design Basics for Beginners">Canva Design</option>
-              <option value="Getting Started with Google Docs">Google Docs</option>
-              <option value="PHP Backend Development">PHP Backend</option>
-            </select>
-          </div>
+              <div class="mb-3">
+                <label class="form-label">Course Name</label>
+                <select class="form-select" name="course_name" required>
+                  <option value="">Select course</option>
+                  <?php foreach ($courses as $course): ?>
+                    <option value="<?php echo htmlspecialchars((string) $course['course_name']); ?>"><?php echo htmlspecialchars((string) $course['course_name']); ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
 
           <div class="mb-3">
             <label class="form-label">Grade (%)</label>
-            <input type="number" id="manualGradeScore" name="score" class="form-control" min="0" max="100" required>
+            <input type="number" name="score" class="form-control" min="0" max="100" required>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label">Assessment Type</label>
-            <input type="text" name="assessment_type" class="form-control" placeholder="e.g. Quiz, Final Project" required>
-          </div>
-        </div>
+              <div class="mb-3">
+                <label class="form-label">Assessment Type</label>
+                <input type="text" name="assessment_type" class="form-control" placeholder="e.g. Quiz, Final Project" required>
+              </div>
+            </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" name="submit_grade" class="btn btn-primary">Submit Grade</button>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" name="submit_grade" class="btn btn-primary">Submit Grade</button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
     </div>
-  </div>
-</div>
+
     <!-- Add Course Modal (New) -->
     <div class="modal fade" id="addCourseModal" tabindex="-1">
       <div class="modal-dialog">

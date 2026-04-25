@@ -2,7 +2,7 @@
 require_once __DIR__ . '/session.php';
 init_lms_session();
 
-$servername = "localhost";
+$servername = "127.0.0.1:3307";
 $username = "root";
 $password = "";
 $dbname = "lms_db";
